@@ -14,13 +14,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Add Git Bash to PATH
-        run: echo "C:\Program Files\Git\bin" >> $env:GITHUB_PATH
-
-      - name: Install Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
+      - name: Install Flutter (Native PowerShell)
+        run: |
+          if (-not (Test-Path "C:\flutter")) {
+            git clone https://github.com/flutter/flutter.git -b stable C:\flutter
+          }
+          echo "C:\flutter\bin" >> $env:GITHUB_PATH
 
       - name: Install dependencies
         run: flutter pub get
