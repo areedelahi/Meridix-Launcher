@@ -88,7 +88,7 @@ class _Toolbar extends ConsumerWidget {
             icon: Icons.account_circle_rounded,
             onPressed: isSigningIn
                 ? null
-                : () => ref.read(authProvider.notifier).loginWithMicrosoft(),
+                : () => ref.read(authProvider.notifier).loginWithMicrosoft(context),
             size: AppButtonSize.small,
           ),
           const SizedBox(width: AppSpacing.px8),

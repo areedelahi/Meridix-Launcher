@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:typed_data';
 import 'package:encrypt/encrypt.dart' as enc;
@@ -151,12 +152,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
   // ── Microsoft OAuth ───────────────────────────────────────────────────────
 
   /// Opens the browser for MS login and adds the account on success.
-  Future<void> loginWithMicrosoft() async {
+  Future<void> loginWithMicrosoft(BuildContext context) async {
     if (state.isSigningIn) return;
     state = state.copyWith(status: AuthStatus.signingIn, errorMessage: null);
 
     try {
-      final account = await _ms.loginWithBrowser();
+      final account = await _ms.loginWithBrowser(context);
 
       final existingIndex =
           state.accounts.indexWhere((a) => a.uuid == account.uuid);

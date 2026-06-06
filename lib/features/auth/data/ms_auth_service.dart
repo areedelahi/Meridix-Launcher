@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:desktop_webview_window/desktop_webview_window.dart';
+import '../presentation/microsoft_login_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../domain/user_account.dart';
 
@@ -34,7 +36,7 @@ class MsAuthService {
   /// Full login flow. Opens a WebView popup, waits for code, exchanges tokens,
   /// authenticates with Xbox + Minecraft, and returns a [UserAccount].
   /// Start the MSA v1.0 OAuth flow and return a fully resolved Microsoft token.
-  Future<UserAccount> loginWithBrowser() async {
+  Future<UserAccount> loginWithBrowser(BuildContext context) async {
     // Build authorization URL (MSA v1.0)
     final authUrl = Uri.https(
       'login.live.com',
@@ -49,8 +51,21 @@ class MsAuthService {
 
     String code;
     if (Platform.isWindows) {
-      // Use our local HTML fallback server for Windows to bypass WebView2 bugs
-      code = await _getCodeFromBrowser(authUrl.toString());
+      // Use the new DirectX embedded canvas WebView for Windows
+      final result = await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => MicrosoftLoginScreen(
+            authUrl: authUrl.toString(),
+            redirectUri: _redirectUri,
+          ),
+        ),
+      );
+      if (result == null) {
+        throw Exception('Login cancelled by user.');
+      } else if (result is Exception) {
+        throw result;
+      }
+      code = result as String;
     } else {
       // Use the seamless embedded WebView popup for macOS/Linux
       code = await _getCodeFromWebView(authUrl.toString());

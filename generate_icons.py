@@ -18,7 +18,7 @@ sizes = [
 
 variants = {
     "main": ("main-icon.svg.png", None),
-    "dark": ("nobg-icon.svg.png", "dark"),
+    "dark": ("dark_icon_base.png", "dark"),
     "tinted": ("white-icon.svg.png", "tinted"),
 }
 
