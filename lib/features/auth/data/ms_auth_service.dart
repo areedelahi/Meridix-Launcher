@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:desktop_webview_window/desktop_webview_window.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../domain/user_account.dart';
@@ -34,33 +33,26 @@ class MsAuthService {
 
   /// Full login flow. Opens a WebView popup, waits for code, exchanges tokens,
   /// authenticates with Xbox + Minecraft, and returns a [UserAccount].
-  /// Start the MSA v1.0 OAuth flow and return a fully resolved Microsoft token.
   Future<UserAccount> loginWithBrowser() async {
-    // We bind to a random open port on localhost
-    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
-    final localPort = server.port;
-    await server.close(force: true); // We just needed the port number
-    
-    final redirectUri = 'http://localhost:$localPort';
-
+    // Build authorization URL (MSA v1.0)
     final authUrl = Uri.https(
       'login.live.com',
       '/oauth20_authorize.srf',
       {
         'client_id': _clientId,
         'response_type': 'code',
-        'redirect_uri': redirectUri,
+        'redirect_uri': _redirectUri,
         'scope': _scopes,
       },
     );
 
-    // This launches the default browser, user logs in, and it redirects to our local server
-    final code = await _getCodeFromBrowser(authUrl.toString(), localPort);
+    // Get auth code via WebView
+    final code = await _getCodeFromWebView(authUrl.toString());
 
-    // Exchange the code for a token (Notice we pass the dynamically generated redirectUri)
+    // Exchange code for MS tokens (MSA v1.0)
     final msTokens = await _exchangeCodeForMsToken(
       code: code,
-      redirectUri: redirectUri,
+      redirectUri: _redirectUri,
     );
 
     // Xbox Live
@@ -197,51 +189,51 @@ class MsAuthService {
 
   // ── WebView popup ─────────────────────────────────────────────────────────
 
-  Future<String> _getCodeFromBrowser(String url, int localPort) async {
+  Future<String> _getCodeFromWebView(String url) async {
     final completer = Completer<String>();
-    
-    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, localPort);
-    
-    // Launch the system browser
-    if (!await launchUrl(Uri.parse(url))) {
-      server.close(force: true);
-      throw Exception('Could not open the system browser for authentication.');
+
+    final dir = await getApplicationSupportDirectory();
+    final webviewDir = Directory(p.join(dir.path, 'webview_cache'));
+    if (!await webviewDir.exists()) {
+      await webviewDir.create(recursive: true);
     }
+    final webviewPath = webviewDir.path;
 
-    server.listen((HttpRequest request) async {
-      final code = request.uri.queryParameters['code'];
-      final error = request.uri.queryParameters['error'];
+    // Do NOT call clearAll here, it locks the directory on Windows and causes a grey screen race condition!
+    
+    final webview = await WebviewWindow.create(
+      configuration: CreateConfiguration(
+        windowHeight: 700,
+        windowWidth: 500,
+        title: 'Sign in to Microsoft',
+        userDataFolderWindows: webviewPath,
+      ),
+    );
 
-      request.response
-        ..statusCode = 200
-        ..headers.contentType = ContentType.html
-        ..write('''
-          <html>
-            <body style="font-family: sans-serif; text-align: center; margin-top: 50px;">
-              <h2>${code != null ? 'Authentication Successful!' : 'Authentication Failed'}</h2>
-              <p>You can close this window and return to Meridix Launcher.</p>
-              <script>window.close();</script>
-            </body>
-          </html>
-        ''');
-      await request.response.close();
+    webview.setOnUrlRequestCallback((urlStr) {
+      if (urlStr.startsWith(_redirectUri)) {
+        final uri = Uri.parse(urlStr);
+        final code = uri.queryParameters['code'];
+        final error = uri.queryParameters['error'];
 
-      if (code != null && !completer.isCompleted) {
-        completer.complete(code);
-      } else if (error != null && !completer.isCompleted) {
-        completer.completeError(Exception(error));
+        if (code != null) {
+          if (!completer.isCompleted) completer.complete(code);
+          webview.close();
+        } else if (error != null) {
+          if (!completer.isCompleted) completer.completeError(Exception(error));
+          webview.close();
+        }
       }
-      
-      server.close(force: true);
+      return false; // allow navigation by default
     });
 
-    // Timeout after 3 minutes just in case
-    Future.delayed(const Duration(minutes: 3), () {
+    webview.onClose.whenComplete(() {
       if (!completer.isCompleted) {
-        completer.completeError(Exception('Login timed out.'));
-        server.close(force: true);
+        completer.completeError(Exception('Login cancelled by user.'));
       }
     });
+
+    webview.launch(url);
 
     return completer.future;
   }
