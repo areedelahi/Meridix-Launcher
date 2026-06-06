@@ -4,8 +4,6 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:desktop_webview_window/desktop_webview_window.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 import '../domain/user_account.dart';
 
 /// Official Minecraft Launcher Client ID (v1.0 MSA)
@@ -49,8 +47,14 @@ class MsAuthService {
       },
     );
 
-    // Use our local HTML fallback server to handle the copy-paste
-    final code = await _getCodeFromBrowser(authUrl.toString());
+    String code;
+    if (Platform.isWindows) {
+      // Use our local HTML fallback server for Windows to bypass WebView2 bugs
+      code = await _getCodeFromBrowser(authUrl.toString());
+    } else {
+      // Use the seamless embedded WebView popup for macOS/Linux
+      code = await _getCodeFromWebView(authUrl.toString());
+    }
 
     // Exchange code for MS tokens (MSA v1.0)
     final msTokens = await _exchangeCodeForMsToken(
@@ -190,7 +194,49 @@ class MsAuthService {
     return _extractSkinUrl(profile);
   }
 
-  // ── Browser Popup Fallback ────────────────────────────────────────────────
+  // ── macOS: embedded WebView ───────────────────────────────────────────────
+
+  Future<String> _getCodeFromWebView(String url) async {
+    final completer = Completer<String>();
+
+    final webview = await WebviewWindow.create(
+      configuration: const CreateConfiguration(
+        windowHeight: 700,
+        windowWidth: 500,
+        title: 'Sign in to Microsoft',
+        titleBarTopPadding: 0,
+      ),
+    );
+
+    webview.setOnUrlRequestCallback((urlStr) {
+      if (urlStr.startsWith(_redirectUri)) {
+        final uri = Uri.parse(urlStr);
+        final code = uri.queryParameters['code'];
+        final error = uri.queryParameters['error'];
+
+        if (code != null) {
+          if (!completer.isCompleted) completer.complete(code);
+          webview.close();
+        } else if (error != null) {
+          if (!completer.isCompleted) completer.completeError(Exception(error));
+          webview.close();
+        }
+      }
+      return false;
+    });
+
+    webview.onClose.whenComplete(() {
+      if (!completer.isCompleted) {
+        completer.completeError(Exception('Login cancelled by user.'));
+      }
+    });
+
+    webview.launch(url);
+
+    return completer.future;
+  }
+
+  // ── Windows / Linux: system browser + paste redirect URL ─────────────────
 
   Future<String> _getCodeFromBrowser(String authUrl) async {
     final completer = Completer<String>();
@@ -255,12 +301,12 @@ class MsAuthService {
               <body style="font-family: 'Segoe UI', sans-serif; background-color: #0C0E13; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0;">
                 <div style="background-color: #1A1D24; padding: 40px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); text-align: center; max-width: 500px;">
                   <h1 style="margin-top: 0;">Microsoft Sign In</h1>
-                  <p style="color: #A0AABF; margin-bottom: 30px;">Due to a bug in Microsoft's WebView on your PC, we need you to manually copy the login link.</p>
+                  <p style="color: #A0AABF; margin-bottom: 30px;">Sign in with your default browser, then paste the redirect URL back here.</p>
                   
                   <div style="text-align: left; margin-bottom: 30px;">
                     <p><b>Step 1:</b> Click the button below to open Microsoft's login page.</p>
-                    <p><b>Step 2:</b> Log in. When you see a <b>blank white page</b>, copy the entire URL from your address bar.</p>
-                    <p><b>Step 3:</b> Come back to this tab and paste the URL below.</p>
+                    <p><b>Step 2:</b> Log in. When the page finishes, copy the <b>full URL</b> from your address bar (it starts with <code>https://login.live.com/oauth20_desktop.srf?...</code>).</p>
+                    <p><b>Step 3:</b> Return to this tab and paste the URL below.</p>
                   </div>
 
                   <a href="$authUrl" target="_blank" style="display: inline-block; background-color: #0078D4; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; margin-bottom: 30px;">Open Microsoft Login</a>
