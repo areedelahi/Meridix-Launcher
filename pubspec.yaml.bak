@@ -1,0 +1,72 @@
+name: liquid_launcher
+description: LiquidLauncher — Cross-platform Minecraft launcher for Windows, macOS & Linux.
+version: 1.0.0+1
+publish_to: none
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # Navigation
+  go_router: ^14.2.0
+
+  # Window & platform
+  window_manager: ^0.3.9
+  flutter_acrylic: ^1.2.0
+
+  # Network
+  dio: ^5.4.3+1
+
+  # Storage
+  flutter_secure_storage: ^9.2.2
+  hive_flutter: ^1.1.0
+  path_provider: ^2.1.3
+
+  # UI & fonts
+  google_fonts: ^6.2.1
+  shadcn_flutter: ^0.1.9
+
+  # Utilities
+  archive: ^3.6.1
+  crypto: ^3.0.3
+  url_launcher: ^6.3.0
+  intl: ^0.19.0
+  logger: ^2.4.0
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+  equatable: ^2.0.5
+  collection: ^1.18.0
+  uuid: ^4.4.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  riverpod_generator: ^2.4.3
+  build_runner: ^2.4.11
+  freezed: ^2.5.2
+  json_serializable: ^6.8.0
+  hive_generator: ^2.0.1
+  custom_lint: ^0.6.5
+  riverpod_lint: ^2.3.13
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
+
+  fonts:
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-Regular.ttf
+        - asset: assets/fonts/JetBrainsMono-Bold.ttf
+          weight: 700
