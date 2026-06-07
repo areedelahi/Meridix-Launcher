@@ -152,9 +152,21 @@ class _InstanceDetailScreenState extends ConsumerState<InstanceDetailScreen> {
                           }
                           setState(() => _isLaunching = true);
                           try {
-                            await ref
-                                .read(downloadsProvider.notifier)
-                                .startDownload(instance);
+                            try {
+                              await ref
+                                  .read(downloadsProvider.notifier)
+                                  .startDownload(instance);
+                            } catch (downloadError) {
+                              // If the network is down or API times out, we still attempt to launch!
+                              // If the instance hasn't been installed yet, the Rust launch() engine 
+                              // will naturally throw a "Profile not found" error anyway.
+                              print("Update check failed (offline mode?): $downloadError");
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Offline Mode: Skipping updates...')),
+                                );
+                              }
+                            }
 
                             final instancesList =
                                 ref.read(instancesProvider).value ?? [];
