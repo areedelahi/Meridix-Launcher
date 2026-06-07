@@ -92,9 +92,51 @@ pub fn install_instance(
     };
 
     let install_result = launcher.install_with_progress(request, &mut reporter)?;
+
+    // ---- BEGIN MOJANG JAVA INSTALLATION ----
+    let _ = progress_sink.add(DartProgressEvent::TaskStarted {
+        label: "Resolving Mojang Java Runtime".to_string(),
+        path: "".to_string(),
+    });
+
+    if let Some(jvm_info) = mc_launcher_core::runtime::get_version_runtime_information(&install_result.version_id, &minecraft_dir) {
+        let jvm_version = jvm_info.name; // e.g. "java-runtime-gamma"
+        let _ = progress_sink.add(DartProgressEvent::TaskStarted {
+            label: format!("Installing {}", jvm_version),
+            path: "".to_string(),
+        });
+
+        // Setup callbacks for Java downloading
+        let sink_clone = progress_sink.clone();
+        let jvm_name = jvm_version.clone();
+        let cb = mc_launcher_core::types::CallbackDict {
+            set_max: None,
+            set_progress: Some(Box::new(move |progress| {
+                let _ = sink_clone.add(DartProgressEvent::TaskStarted {
+                    label: format!("Extracting {} (File {})", jvm_name, progress),
+                    path: "".to_string(),
+                });
+            })),
+        };
+
+        if let Err(e) = mc_launcher_core::runtime::install_jvm_runtime(&jvm_version, &minecraft_dir, &cb) {
+            println!("Failed to install Mojang JVM: {}", e);
+        }
+    }
+    // ---- END MOJANG JAVA INSTALLATION ----
+
     let _ = progress_sink.add(DartProgressEvent::InstallComplete {
         version_id: install_result.version_id.clone(),
     });
     
     Ok(install_result.version_id)
+}
+
+pub fn get_java_executable_path(minecraft_dir: String, version_id: String) -> Option<String> {
+    if let Some(jvm_info) = mc_launcher_core::runtime::get_version_runtime_information(&version_id, &minecraft_dir) {
+        if let Some(path) = mc_launcher_core::runtime::get_executable_path(&jvm_info.name, &minecraft_dir) {
+            return Some(path.to_string_lossy().to_string());
+        }
+    }
+    None
 }

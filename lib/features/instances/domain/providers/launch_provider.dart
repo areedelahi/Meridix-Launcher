@@ -6,7 +6,6 @@ import '../../data/instance_repository.dart';
 import '../models/instance.dart';
 import 'running_instances_provider.dart';
 
-import 'java_runtime_provider.dart';
 import 'instance_provider.dart';
 
 class LaunchService {
@@ -30,9 +29,13 @@ class LaunchService {
     
     // Auto-download Java if the user hasn't explicitly set a custom path!
     if (javaExe == null || javaExe.trim().isEmpty) {
-      final javaService = ref.read(javaRuntimeProvider);
       final targetVersion = instance.profileId ?? instance.minecraftVersion;
-      javaExe = await javaService.getOrDownloadJavaExecutable(targetVersion);
+      final root = await repo.getLauncherRoot();
+      javaExe = await getJavaExecutablePath(minecraftDir: root, versionId: targetVersion);
+      
+      if (javaExe == null) {
+        throw Exception("Failed to resolve official Mojang Java path for version $targetVersion!");
+      }
     }
     
     final userJvmArgs = instance.jvmArgs ?? settings.jvmArgs ?? '';
