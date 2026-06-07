@@ -73,7 +73,7 @@ pub fn get_installed_jvm_runtimes(minecraft_directory: impl AsRef<Path>) -> Vec<
 pub fn install_jvm_runtime(
     jvm_version: &str,
     minecraft_directory: impl AsRef<Path>,
-    callback: &CallbackDict,
+    reporter: &mut dyn crate::progress::ProgressReporter,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::blocking::Client::new();
     let manifest_data: RuntimeListJson = client
@@ -124,10 +124,6 @@ pub fn install_jvm_runtime(
         .join(jvm_version);
 
     // Download all files of the runtime
-    if let Some(set_max) = callback.set_max {
-        set_max(platform_manifest.files.len() as i32 - 1);
-    }
-    let mut count = 0;
     let mut file_list: Vec<&String> = vec![];
     for (key, value) in platform_manifest.files.iter() {
         let current_path = base_path.join(key);
@@ -143,7 +139,7 @@ pub fn install_jvm_runtime(
                             true,
                             None::<&Path>,
                             Some(&client),
-                            callback,
+                            reporter,
                         )?;
                     } else {
                         download_file(
@@ -153,13 +149,13 @@ pub fn install_jvm_runtime(
                             false,
                             None::<&Path>,
                             Some(&client),
-                            callback,
+                            reporter,
                         )?;
                     }
                 }
                 //Make files executable on unix systems
                 if value.executable == Some(true) {
-                    let _ = Command::new("chmod").arg("+x").arg(current_path).status();
+                    let _ = Command::new("chmod").arg("+x").arg(&current_path).status();
                 }
                 file_list.push(key);
             } else if vtype == "directory" {
@@ -180,10 +176,13 @@ pub fn install_jvm_runtime(
                     }
                 }
             }
-            if let Some(set_progresss) = callback.set_progress {
-                set_progresss(count);
+            if let Some(file_name) = current_path.file_name() {
+                if let Some(name_str) = file_name.to_str() {
+                    reporter.report(crate::progress::ProgressEvent::TaskFinished {
+                        label: format!("Downloading {}", name_str),
+                    });
+                }
             }
-            count += 1;
         }
     }
     // Create the .version file

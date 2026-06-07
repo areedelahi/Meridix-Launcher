@@ -16,7 +16,6 @@ use std::{
 use sysinfo::System;
 #[cfg(windows)]
 use winver::WindowsVersion;
-use xz2::read::XzDecoder;
 use zip::ZipArchive;
 
 use crate::types::{
@@ -51,7 +50,7 @@ pub fn download_file(
     lzma_compressed: bool,
     minecraft_directory: Option<impl AsRef<Path>>,
     session: Option<&reqwest::blocking::Client>,
-    callback: &CallbackDict,
+    reporter: &mut dyn crate::progress::ProgressReporter,
 ) -> Result<bool, Box<dyn std::error::Error>> {
     if let Some(mc_dir) = minecraft_directory {
         check_path_inside_minecraft_directory(mc_dir, &path)?;
@@ -71,11 +70,12 @@ pub fn download_file(
         let _ = fs::create_dir_all(parent_dir);
     }
 
-    if let Some(set_status) = callback.set_status {
-        if let Some(file_name) = path.as_ref().file_name() {
-            if let Some(file_name_str) = file_name.to_str() {
-                set_status(format!("Download {}", file_name_str));
-            }
+    if let Some(file_name) = path.as_ref().file_name() {
+        if let Some(file_name_str) = file_name.to_str() {
+            reporter.report(crate::progress::ProgressEvent::TaskStarted {
+                label: format!("Downloading {}", file_name_str),
+                path: path.as_ref().to_path_buf(),
+            });
         }
     }
     let mut response: Response;
@@ -96,8 +96,8 @@ pub fn download_file(
     }
     let mut file = BufWriter::new(File::create(&path)?);
     if lzma_compressed {
-        let mut decoder = XzDecoder::new(response);
-        io::copy(&mut decoder, &mut file)?;
+        let mut buf_reader = io::BufReader::new(response);
+        lzma_rs::lzma_decompress(&mut buf_reader, &mut file).map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
     } else {
         io::copy(&mut response, &mut file)?;
     }
@@ -127,7 +127,7 @@ fn parse_single_rule(rule: &ClientJsonRule, options: &MinecraftOptions) -> bool 
     }
 
     if let Some(os) = &rule.os {
-        if let Some(name) = os.get("name") {
+        if let Some(name) = os.get("name").and_then(|v| v.as_str()) {
             if name == "windows" && std::env::consts::OS != "windows" {
                 return return_value;
             } else if name == "osx" && std::env::consts::OS != "macos" {
@@ -136,13 +136,13 @@ fn parse_single_rule(rule: &ClientJsonRule, options: &MinecraftOptions) -> bool 
                 return return_value;
             }
         }
-        if let Some(arch) = os.get("arch") {
+        if let Some(arch) = os.get("arch").and_then(|v| v.as_str()) {
             let arch_info = System::cpu_arch();
             if arch == "x86" && arch_info != "x86" {
                 return return_value;
             }
         }
-        if let Some(version) = os.get("version") {
+        if let Some(version) = os.get("version").and_then(|v| v.as_str()) {
             let os_version = get_os_version();
             let re = Regex::new(version).unwrap();
             if !re.is_match(&os_version) {
@@ -504,10 +504,10 @@ mod tests {
 
     #[test]
     fn debug_get_client_json() {
-        // match get_client_json("1.19", r"H:\mc\mc-launcher-core\test\.minecraft") {
-        //     Ok(client_json) => println!("{:#?}", client_json),
-        //     Err(e) => println!("{}", e.to_string()),
-        // }
+        match get_client_json("26.1.2", "/tmp") {
+            Ok(client_json) => println!("Success!"),
+            Err(e) => println!("ERROR: {}", e.to_string()),
+        }
     }
 
     #[test]

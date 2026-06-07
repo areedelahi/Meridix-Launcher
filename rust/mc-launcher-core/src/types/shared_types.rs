@@ -4,7 +4,7 @@ use std::collections::HashMap;
 #[derive(Debug, Deserialize, Clone)]
 pub struct ClientJsonRule {
     pub action: String,
-    pub os: Option<HashMap<String, String>>,
+    pub os: Option<HashMap<String, serde_json::Value>>,
     pub features: Option<HashMap<String, bool>>,
 }
 

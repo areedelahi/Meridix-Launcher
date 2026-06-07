@@ -1,11 +1,6 @@
 use flutter_rust_bridge::frb;
 use mc_launcher_core::prelude::*;
 use std::path::PathBuf;
-use std::cell::RefCell;
-
-thread_local! {
-    static JAVA_DOWNLOAD_PROGRESS_CB: RefCell<Option<Box<dyn FnMut(i32)>>> = RefCell::new(None);
-}
 
 #[frb(mirror(InstallStage))]
 pub enum _InstallStage {
@@ -97,55 +92,6 @@ pub fn install_instance(
     };
 
     let install_result = launcher.install_with_progress(request, &mut reporter)?;
-
-    // ---- BEGIN MOJANG JAVA INSTALLATION ----
-    let _ = progress_sink.add(DartProgressEvent::TaskStarted {
-        label: "Resolving Mojang Java Runtime".to_string(),
-        path: "".to_string(),
-    });
-
-    if let Some(jvm_info) = mc_launcher_core::runtime::get_version_runtime_information(&version, &minecraft_dir) {
-        let jvm_version = jvm_info.name; // e.g. "java-runtime-gamma"
-        let _ = progress_sink.add(DartProgressEvent::TaskStarted {
-            label: format!("Installing {}", jvm_version),
-            path: "".to_string(),
-        });
-
-        // Setup callbacks for Java downloading
-        let sink_clone = progress_sink.clone();
-        let jvm_name = jvm_version.clone();
-        
-        JAVA_DOWNLOAD_PROGRESS_CB.with(|cb| {
-            *cb.borrow_mut() = Some(Box::new(move |progress| {
-                let _ = sink_clone.add(DartProgressEvent::TaskStarted {
-                    label: format!("Extracting {} (File {})", jvm_name, progress),
-                    path: "".to_string(),
-                });
-            }));
-        });
-
-        let cb = mc_launcher_core::types::CallbackDict {
-            set_max: None,
-            set_status: None,
-            set_progress: Some(|progress| {
-                JAVA_DOWNLOAD_PROGRESS_CB.with(|cb| {
-                    if let Some(f) = cb.borrow_mut().as_mut() {
-                        f(progress);
-                    }
-                });
-            }),
-        };
-
-        if let Err(e) = mc_launcher_core::runtime::install_jvm_runtime(&jvm_version, &minecraft_dir, &cb) {
-            println!("Failed to install Mojang JVM: {}", e);
-        }
-        
-        // Clean up the thread-local storage to prevent memory leaks across FFI boundaries
-        JAVA_DOWNLOAD_PROGRESS_CB.with(|cb| {
-            *cb.borrow_mut() = None;
-        });
-    }
-    // ---- END MOJANG JAVA INSTALLATION ----
 
     let _ = progress_sink.add(DartProgressEvent::InstallComplete {
         version_id: install_result.version_id.clone(),

@@ -79,10 +79,32 @@ impl Launcher {
         request: InstallRequest,
         reporter: &mut dyn ProgressReporter,
     ) -> Result<InstallResult> {
+        self.install_vanilla_version(&request.minecraft_version, reporter)?;
+
+        let mut java_path = PathBuf::from("java");
+
+        if request.java == crate::install::request::JavaInstallPolicy::Auto {
+            if let Some(jvm_info) = crate::runtime::get_version_runtime_information(&request.minecraft_version, &self.minecraft_dir) {
+                reporter.report(crate::progress::ProgressEvent::TaskStarted {
+                    label: format!("Installing Java Runtime {}", jvm_info.name),
+                    path: PathBuf::from(""),
+                });
+                
+                if let Err(e) = crate::runtime::install_jvm_runtime(&jvm_info.name, &self.minecraft_dir, reporter) {
+                    return Err(LauncherError::Other {
+                        message: format!("Failed to install Java: {}", e),
+                    });
+                }
+                
+                if let Some(path) = crate::runtime::get_executable_path(&jvm_info.name, &self.minecraft_dir) {
+                    java_path = path;
+                }
+            }
+        }
+
         if let Some(loader) = request.loader.clone() {
             match loader {
                 LoaderSpec::Fabric { version } => {
-                    self.install_vanilla_version(&request.minecraft_version, reporter)?;
                     let loader_version = resolve_fabric_loader_version(version)?;
                     let profile = crate::loader::fabric::fetch_profile(
                         &request.minecraft_version,
@@ -95,7 +117,6 @@ impl Launcher {
                     return Ok(InstallResult { version_id });
                 }
                 LoaderSpec::Quilt { version } => {
-                    self.install_vanilla_version(&request.minecraft_version, reporter)?;
                     let loader_version = resolve_quilt_loader_version(version)?;
                     let profile = crate::loader::quilt::fetch_profile(
                         &request.minecraft_version,
@@ -108,7 +129,6 @@ impl Launcher {
                     return Ok(InstallResult { version_id });
                 }
                 LoaderSpec::Forge { version } => {
-                    self.install_vanilla_version(&request.minecraft_version, reporter)?;
                     let loader_version = resolve_forge_loader_version(version)?;
                     let installer_path = download_installer(
                         &self.minecraft_dir,
@@ -122,7 +142,7 @@ impl Launcher {
                     });
                     run_loader_installer(&InstallerInvocation {
                         loader: LoaderKind::Forge,
-                        java_executable: PathBuf::from("java"),
+                        java_executable: java_path,
                         installer_path,
                         minecraft_dir: self.minecraft_dir.clone(),
                     })?;
@@ -133,7 +153,6 @@ impl Launcher {
                     });
                 }
                 LoaderSpec::NeoForge { version } => {
-                    self.install_vanilla_version(&request.minecraft_version, reporter)?;
                     let loader_version = resolve_neoforge_loader_version(version)?;
                     let installer_path = download_installer(
                         &self.minecraft_dir,
@@ -147,7 +166,7 @@ impl Launcher {
                     });
                     run_loader_installer(&InstallerInvocation {
                         loader: LoaderKind::NeoForge,
-                        java_executable: PathBuf::from("java"),
+                        java_executable: java_path,
                         installer_path,
                         minecraft_dir: self.minecraft_dir.clone(),
                     })?;
@@ -161,7 +180,6 @@ impl Launcher {
             }
         }
 
-        self.install_vanilla_version(&request.minecraft_version, reporter)?;
         Ok(InstallResult {
             version_id: request.minecraft_version,
         })

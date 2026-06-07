@@ -378,26 +378,33 @@ class MsAuthService {
   }
 
   Future<Map<String, String>> _refreshMsToken(String refreshToken) async {
-    final resp = await _dio.post<Map<String, dynamic>>(
-      'https://login.live.com/oauth20_token.srf',
-      data: {
-        'client_id': _clientId,
-        'grant_type': 'refresh_token',
-        'refresh_token': refreshToken,
-        'redirect_uri': _redirectUri,
-        'scope': _scopes,
-      },
-      options: Options(
-        contentType: 'application/x-www-form-urlencoded',
-        responseType: ResponseType.json,
-      ),
-    );
-    final data = resp.data!;
-    return {
-      'access_token': data['access_token'] as String,
-      'refresh_token': data['refresh_token'] as String? ?? refreshToken,
-      'expires_in': data['expires_in'].toString(),
-    };
+    try {
+      final resp = await _dio.post<Map<String, dynamic>>(
+        'https://login.live.com/oauth20_token.srf',
+        data: {
+          'client_id': _clientId,
+          'grant_type': 'refresh_token',
+          'refresh_token': refreshToken,
+          'redirect_uri': _redirectUri,
+          'scope': _scopes,
+        },
+        options: Options(
+          contentType: 'application/x-www-form-urlencoded',
+          responseType: ResponseType.json,
+        ),
+      );
+      final data = resp.data!;
+      return {
+        'access_token': data['access_token'] as String,
+        'refresh_token': data['refresh_token'] as String? ?? refreshToken,
+        'expires_in': data['expires_in'].toString(),
+      };
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 400) {
+        throw Exception("Your Microsoft session has expired. Please sign in again.");
+      }
+      rethrow;
+    }
   }
 
   // ── Internal: Xbox Live ───────────────────────────────────────────────────
