@@ -21,7 +21,7 @@ use crate::{
         CallbackDict, JvmRuntimeInformation, VersionRuntimeInformation,
     },
     utils::helper::{
-        check_path_inside_minecraft_directory, download_file, get_client_json, get_sha1_hash,
+        check_path_inside_minecraft_directory, get_client_json, get_sha1_hash,
         get_user_agent,
     },
 };
@@ -123,51 +123,45 @@ pub fn install_jvm_runtime(
         .join(&platform_string)
         .join(jvm_version);
 
+    let mut plan = crate::net::download::DownloadPlan::default();
+    let mut file_list: Vec<String> = vec![];
+
     // Download all files of the runtime
-    let mut file_list: Vec<&String> = vec![];
     for (key, value) in platform_manifest.files.iter() {
         let current_path = base_path.join(key);
         check_path_inside_minecraft_directory(&minecraft_directory, &current_path)?;
         if let Some(vtype) = &value.r#type {
             if vtype == "file" {
+                file_list.push(key.clone());
                 if let Some(download_info) = &value.downloads {
                     if download_info.contains_key("lzma") {
-                        download_file(
-                            &download_info.get("lzma").unwrap().url,
-                            &current_path,
-                            Some(download_info.get("raw").unwrap().sha1.as_str()),
-                            true,
-                            None::<&Path>,
-                            Some(&client),
-                            reporter,
-                        )?;
+                        let info = download_info.get("lzma").unwrap();
+                        let raw_info = download_info.get("raw").unwrap();
+                        plan.tasks.push(crate::net::download::DownloadTask {
+                            url: info.url.clone(),
+                            destination: current_path.clone(),
+                            checksum: Some(crate::net::download::Checksum::Sha1(raw_info.sha1.clone())),
+                            label: format!("jvm {}", key),
+                            size: Some(info.size as u64),
+                            lzma_compressed: true,
+                            executable: value.executable.unwrap_or(false),
+                        });
                     } else {
-                        download_file(
-                            &download_info.get("raw").unwrap().url,
-                            &current_path,
-                            Some(download_info.get("raw").unwrap().sha1.as_str()),
-                            false,
-                            None::<&Path>,
-                            Some(&client),
-                            reporter,
-                        )?;
+                        let info = download_info.get("raw").unwrap();
+                        plan.tasks.push(crate::net::download::DownloadTask {
+                            url: info.url.clone(),
+                            destination: current_path.clone(),
+                            checksum: Some(crate::net::download::Checksum::Sha1(info.sha1.clone())),
+                            label: format!("jvm {}", key),
+                            size: Some(info.size as u64),
+                            lzma_compressed: false,
+                            executable: value.executable.unwrap_or(false),
+                        });
                     }
                 }
-                //Make files executable on unix systems
-                if value.executable == Some(true) {
-                    let _ = Command::new("chmod").arg("+x").arg(&current_path).status();
-                }
-                file_list.push(key);
             } else if vtype == "directory" {
-                let _ = fs::create_dir_all(&current_path);
+                let _ = std::fs::create_dir_all(&current_path);
             } else if vtype == "link" {
-                check_path_inside_minecraft_directory(
-                    &minecraft_directory,
-                    base_path.join(&value.target.as_ref().map_or("".to_string(), |s| s.clone())),
-                )?;
-                if !current_path.parent().unwrap().exists() {
-                    let _ = fs::create_dir_all(current_path.parent().unwrap());
-                }
                 // Create a symbolic link at `link_path` pointing to `target`
                 #[cfg(unix)]
                 {
@@ -176,15 +170,10 @@ pub fn install_jvm_runtime(
                     }
                 }
             }
-            if let Some(file_name) = current_path.file_name() {
-                if let Some(name_str) = file_name.to_str() {
-                    reporter.report(crate::progress::ProgressEvent::TaskFinished {
-                        label: format!("Downloading {}", name_str),
-                    });
-                }
-            }
         }
     }
+
+    crate::net::download::execute_plan(&plan, reporter)?;
     // Create the .version file
     let version_path = minecraft_directory
         .as_ref()
@@ -216,7 +205,7 @@ pub fn install_jvm_runtime(
     check_path_inside_minecraft_directory(&minecraft_directory, &sha1_path)?;
     let mut sha1_file = fs::File::create(&sha1_path)?;
     for file in file_list {
-        let current_path = base_path.join(file);
+        let current_path = base_path.join(&file);
         let ctime = current_path.metadata()?.modified()?.elapsed()?.as_nanos(); // Use chrono for more precise time handling
         let sha1 = get_sha1_hash(current_path.to_str().unwrap())?;
         sha1_file.write_all(format!("{} /#// {} {}\n", file, sha1, ctime).as_bytes())?;

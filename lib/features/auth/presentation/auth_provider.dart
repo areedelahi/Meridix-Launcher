@@ -6,7 +6,7 @@ import 'dart:typed_data';
 import 'package:encrypt/encrypt.dart' as enc;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:path_provider/path_provider.dart';
+import '../../../core/platform/file_service.dart';
 import 'package:uuid/uuid.dart';
 import 'package:dio/dio.dart';
 import '../domain/user_account.dart';
@@ -97,7 +97,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final _secureStorage = const FlutterSecureStorage();
 
   Future<File> _getStorageFile() async {
-    final dir = await getApplicationSupportDirectory();
+    final dir = await getMeridixSupportDirectory();
     return File('${dir.path}/$_kAccountsFileName');
   }
 

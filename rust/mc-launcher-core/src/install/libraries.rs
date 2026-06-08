@@ -58,6 +58,9 @@ pub fn plan_library_downloads_for_platform(
                     destination: minecraft_dir.join("libraries").join(&path),
                     checksum: None,
                     label: library.name.clone(),
+                    size: None,
+                    lzma_compressed: false,
+                    executable: false,
                 });
             }
         }
@@ -75,6 +78,9 @@ fn download_task(
         destination: minecraft_dir.join("libraries").join(&artifact.path),
         checksum: Some(Checksum::Sha1(artifact.sha1.clone())),
         label: library.name.clone(),
+        size: Some(artifact.size as u64),
+        lzma_compressed: false,
+        executable: false,
     }
 }
 

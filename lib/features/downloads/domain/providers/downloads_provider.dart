@@ -97,11 +97,12 @@ class DownloadsNotifier extends StateNotifier<List<DownloadTaskInfo>> {
             updateTask(taskId, subtitle: 'Finished $label');
           },
           bytesReceived: (label, received, total) {
-            if (total != null && total > BigInt.zero) {
-              final pct = (received.toDouble() / total.toDouble()).clamp(0.1, 0.9);
-              updateTask(taskId, subtitle: 'Downloading $label', progress: pct);
-            } else {
-              updateTask(taskId, subtitle: 'Downloading $label');
+            updateTask(taskId, subtitle: 'Downloading $label');
+          },
+          planProgress: (completedBytes, totalBytes) {
+            if (totalBytes > BigInt.zero) {
+              final pct = (completedBytes.toDouble() / totalBytes.toDouble()).clamp(0.1, 0.99);
+              updateTask(taskId, progress: pct);
             }
           },
           installComplete: (versionId) {

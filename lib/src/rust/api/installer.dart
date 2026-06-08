@@ -65,6 +65,10 @@ sealed class DartProgressEvent with _$DartProgressEvent {
     required BigInt received,
     BigInt? total,
   }) = DartProgressEvent_BytesReceived;
+  const factory DartProgressEvent.planProgress({
+    required BigInt completedBytes,
+    required BigInt totalBytes,
+  }) = DartProgressEvent_PlanProgress;
   const factory DartProgressEvent.installComplete({
     required String versionId,
   }) = DartProgressEvent_InstallComplete;

@@ -69,6 +69,9 @@ pub fn plan_asset_index_download(
         destination: asset_index_path(minecraft_dir, &asset_index.id),
         checksum: Some(Checksum::Sha1(asset_index.sha1.clone())),
         label: format!("assets index {}", asset_index.id),
+        size: Some(asset_index.size as u64),
+        lzma_compressed: false,
+        executable: false,
     }])
 }
 
@@ -91,6 +94,9 @@ pub fn plan_asset_object_downloads_from_index(
                     destination: asset_object_path(minecraft_dir, &object.hash),
                     checksum: Some(Checksum::Sha1(object.hash.clone())),
                     label: format!("asset {name}"),
+                    size: Some(object.size as u64),
+                    lzma_compressed: false,
+                    executable: false,
                 }
             })
             .collect(),

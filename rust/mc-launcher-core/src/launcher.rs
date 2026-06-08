@@ -308,6 +308,9 @@ fn download_installer(
             destination: destination.clone(),
             checksum: None,
             label: format!("{loader_name} installer {loader_version}"),
+            size: None,
+            lzma_compressed: false,
+            executable: false,
         }],
     };
     let mut reporter = |_event: ProgressEvent| {};

@@ -65,6 +65,9 @@ pub fn plan_vanilla_downloads_for_platform(
                 .join(format!("{jar_id}.jar")),
             checksum: Some(Checksum::Sha1(client.sha1.clone())),
             label: format!("client {jar_id}"),
+            size: Some(client.size as u64),
+            lzma_compressed: false,
+            executable: false,
         });
     }
 

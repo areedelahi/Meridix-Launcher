@@ -583,6 +583,7 @@ extension DartProgressEventPatterns on DartProgressEvent {
     TResult Function(DartProgressEvent_TaskSkipped value)? taskSkipped,
     TResult Function(DartProgressEvent_TaskFinished value)? taskFinished,
     TResult Function(DartProgressEvent_BytesReceived value)? bytesReceived,
+    TResult Function(DartProgressEvent_PlanProgress value)? planProgress,
     TResult Function(DartProgressEvent_InstallComplete value)? installComplete,
     required TResult orElse(),
   }) {
@@ -598,6 +599,8 @@ extension DartProgressEventPatterns on DartProgressEvent {
         return taskFinished(_that);
       case DartProgressEvent_BytesReceived() when bytesReceived != null:
         return bytesReceived(_that);
+      case DartProgressEvent_PlanProgress() when planProgress != null:
+        return planProgress(_that);
       case DartProgressEvent_InstallComplete() when installComplete != null:
         return installComplete(_that);
       case _:
@@ -628,6 +631,8 @@ extension DartProgressEventPatterns on DartProgressEvent {
         taskFinished,
     required TResult Function(DartProgressEvent_BytesReceived value)
         bytesReceived,
+    required TResult Function(DartProgressEvent_PlanProgress value)
+        planProgress,
     required TResult Function(DartProgressEvent_InstallComplete value)
         installComplete,
   }) {
@@ -643,6 +648,8 @@ extension DartProgressEventPatterns on DartProgressEvent {
         return taskFinished(_that);
       case DartProgressEvent_BytesReceived():
         return bytesReceived(_that);
+      case DartProgressEvent_PlanProgress():
+        return planProgress(_that);
       case DartProgressEvent_InstallComplete():
         return installComplete(_that);
     }
@@ -667,6 +674,7 @@ extension DartProgressEventPatterns on DartProgressEvent {
     TResult? Function(DartProgressEvent_TaskSkipped value)? taskSkipped,
     TResult? Function(DartProgressEvent_TaskFinished value)? taskFinished,
     TResult? Function(DartProgressEvent_BytesReceived value)? bytesReceived,
+    TResult? Function(DartProgressEvent_PlanProgress value)? planProgress,
     TResult? Function(DartProgressEvent_InstallComplete value)? installComplete,
   }) {
     final _that = this;
@@ -681,6 +689,8 @@ extension DartProgressEventPatterns on DartProgressEvent {
         return taskFinished(_that);
       case DartProgressEvent_BytesReceived() when bytesReceived != null:
         return bytesReceived(_that);
+      case DartProgressEvent_PlanProgress() when planProgress != null:
+        return planProgress(_that);
       case DartProgressEvent_InstallComplete() when installComplete != null:
         return installComplete(_that);
       case _:
@@ -708,6 +718,7 @@ extension DartProgressEventPatterns on DartProgressEvent {
     TResult Function(String label)? taskFinished,
     TResult Function(String label, BigInt received, BigInt? total)?
         bytesReceived,
+    TResult Function(BigInt completedBytes, BigInt totalBytes)? planProgress,
     TResult Function(String versionId)? installComplete,
     required TResult orElse(),
   }) {
@@ -723,6 +734,8 @@ extension DartProgressEventPatterns on DartProgressEvent {
         return taskFinished(_that.label);
       case DartProgressEvent_BytesReceived() when bytesReceived != null:
         return bytesReceived(_that.label, _that.received, _that.total);
+      case DartProgressEvent_PlanProgress() when planProgress != null:
+        return planProgress(_that.completedBytes, _that.totalBytes);
       case DartProgressEvent_InstallComplete() when installComplete != null:
         return installComplete(_that.versionId);
       case _:
@@ -751,6 +764,8 @@ extension DartProgressEventPatterns on DartProgressEvent {
     required TResult Function(String label) taskFinished,
     required TResult Function(String label, BigInt received, BigInt? total)
         bytesReceived,
+    required TResult Function(BigInt completedBytes, BigInt totalBytes)
+        planProgress,
     required TResult Function(String versionId) installComplete,
   }) {
     final _that = this;
@@ -765,6 +780,8 @@ extension DartProgressEventPatterns on DartProgressEvent {
         return taskFinished(_that.label);
       case DartProgressEvent_BytesReceived():
         return bytesReceived(_that.label, _that.received, _that.total);
+      case DartProgressEvent_PlanProgress():
+        return planProgress(_that.completedBytes, _that.totalBytes);
       case DartProgressEvent_InstallComplete():
         return installComplete(_that.versionId);
     }
@@ -790,6 +807,7 @@ extension DartProgressEventPatterns on DartProgressEvent {
     TResult? Function(String label)? taskFinished,
     TResult? Function(String label, BigInt received, BigInt? total)?
         bytesReceived,
+    TResult? Function(BigInt completedBytes, BigInt totalBytes)? planProgress,
     TResult? Function(String versionId)? installComplete,
   }) {
     final _that = this;
@@ -804,6 +822,8 @@ extension DartProgressEventPatterns on DartProgressEvent {
         return taskFinished(_that.label);
       case DartProgressEvent_BytesReceived() when bytesReceived != null:
         return bytesReceived(_that.label, _that.received, _that.total);
+      case DartProgressEvent_PlanProgress() when planProgress != null:
+        return planProgress(_that.completedBytes, _that.totalBytes);
       case DartProgressEvent_InstallComplete() when installComplete != null:
         return installComplete(_that.versionId);
       case _:
@@ -1172,6 +1192,83 @@ class _$DartProgressEvent_BytesReceivedCopyWithImpl<$Res>
           ? _self.total
           : total // ignore: cast_nullable_to_non_nullable
               as BigInt?,
+    ));
+  }
+}
+
+/// @nodoc
+
+class DartProgressEvent_PlanProgress extends DartProgressEvent {
+  const DartProgressEvent_PlanProgress(
+      {required this.completedBytes, required this.totalBytes})
+      : super._();
+
+  final BigInt completedBytes;
+  final BigInt totalBytes;
+
+  /// Create a copy of DartProgressEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $DartProgressEvent_PlanProgressCopyWith<DartProgressEvent_PlanProgress>
+      get copyWith => _$DartProgressEvent_PlanProgressCopyWithImpl<
+          DartProgressEvent_PlanProgress>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is DartProgressEvent_PlanProgress &&
+            (identical(other.completedBytes, completedBytes) ||
+                other.completedBytes == completedBytes) &&
+            (identical(other.totalBytes, totalBytes) ||
+                other.totalBytes == totalBytes));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, completedBytes, totalBytes);
+
+  @override
+  String toString() {
+    return 'DartProgressEvent.planProgress(completedBytes: $completedBytes, totalBytes: $totalBytes)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $DartProgressEvent_PlanProgressCopyWith<$Res>
+    implements $DartProgressEventCopyWith<$Res> {
+  factory $DartProgressEvent_PlanProgressCopyWith(
+          DartProgressEvent_PlanProgress value,
+          $Res Function(DartProgressEvent_PlanProgress) _then) =
+      _$DartProgressEvent_PlanProgressCopyWithImpl;
+  @useResult
+  $Res call({BigInt completedBytes, BigInt totalBytes});
+}
+
+/// @nodoc
+class _$DartProgressEvent_PlanProgressCopyWithImpl<$Res>
+    implements $DartProgressEvent_PlanProgressCopyWith<$Res> {
+  _$DartProgressEvent_PlanProgressCopyWithImpl(this._self, this._then);
+
+  final DartProgressEvent_PlanProgress _self;
+  final $Res Function(DartProgressEvent_PlanProgress) _then;
+
+  /// Create a copy of DartProgressEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? completedBytes = null,
+    Object? totalBytes = null,
+  }) {
+    return _then(DartProgressEvent_PlanProgress(
+      completedBytes: null == completedBytes
+          ? _self.completedBytes
+          : completedBytes // ignore: cast_nullable_to_non_nullable
+              as BigInt,
+      totalBytes: null == totalBytes
+          ? _self.totalBytes
+          : totalBytes // ignore: cast_nullable_to_non_nullable
+              as BigInt,
     ));
   }
 }

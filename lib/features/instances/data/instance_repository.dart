@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path/path.dart' as p;
+import '../../../core/platform/file_service.dart';
 import '../domain/models/instance.dart';
 
 final instanceRepositoryProvider = Provider<InstanceRepository>((ref) {
@@ -18,7 +19,7 @@ class InstanceRepository {
     if (customDir != null && customDir.isNotEmpty) {
       baseDir = Directory(customDir);
     } else {
-      baseDir = await getApplicationSupportDirectory();
+      baseDir = await getMeridixSupportDirectory();
     }
     
     final dir = Directory(p.join(baseDir.path, 'instances'));

@@ -20,6 +20,7 @@ pub enum DartProgressEvent {
     TaskSkipped { label: String, reason: String },
     TaskFinished { label: String },
     BytesReceived { label: String, received: u64, total: Option<u64> },
+    PlanProgress { completed_bytes: u64, total_bytes: u64 },
     InstallComplete { version_id: String },
 }
 
@@ -43,6 +44,12 @@ impl From<ProgressEvent> for DartProgressEvent {
                     label,
                     received,
                     total,
+                }
+            }
+            ProgressEvent::PlanProgress { completed_bytes, total_bytes } => {
+                DartProgressEvent::PlanProgress {
+                    completed_bytes,
+                    total_bytes,
                 }
             }
         }

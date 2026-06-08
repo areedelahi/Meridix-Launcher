@@ -10,7 +10,7 @@ import 'src/rust/frb_generated.dart';
 
 import 'dart:async';
 import 'dart:ui';
-import 'package:path_provider/path_provider.dart';
+import 'core/platform/file_service.dart';
 import 'package:path/path.dart' as p;
 
 File? _globalLogFile;
@@ -34,7 +34,7 @@ Future<void> main(List<String> args) async {
     
     // Initialize logger file
     try {
-      final dir = await getApplicationSupportDirectory();
+      final dir = await getMeridixSupportDirectory();
       final logDir = Directory(p.join(dir.path, 'logs'));
       if (!await logDir.exists()) await logDir.create(recursive: true);
       _globalLogFile = File(p.join(logDir.path, 'latest.log'));

@@ -70,6 +70,13 @@ pub enum ProgressEvent {
         /// Total byte count when the server reported it.
         total: Option<u64>,
     },
+    /// Aggregated progress across an entire download plan.
+    PlanProgress {
+        /// Total bytes completed across all tasks in the plan.
+        completed_bytes: u64,
+        /// Total bytes expected across all tasks in the plan.
+        total_bytes: u64,
+    },
 }
 
 /// Receives installation progress events.

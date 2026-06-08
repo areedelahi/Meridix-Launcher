@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:path_provider/path_provider.dart';
+import '../../../../core/platform/file_service.dart';
 import 'package:path/path.dart' as p;
 import '../models/app_settings.dart';
 
@@ -83,7 +83,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await prefs.setBool('closeOnLaunch', newSettings.closeOnLaunch);
     state = newSettings;
     try {
-      final baseDir = await getApplicationSupportDirectory();
+      final baseDir = await getMeridixSupportDirectory();
       final logDir = Directory(p.join(baseDir.path, 'logs'));
       if (!await logDir.exists()) {
         await logDir.create(recursive: true);

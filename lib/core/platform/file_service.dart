@@ -47,9 +47,8 @@ class DesktopFileService implements FileService {
       return _launcherDirCache!;
     }
     
-    final appSupport = await getApplicationSupportDirectory();
-    final dir = Directory(p.join(appSupport.path, 'MeridixLauncher'));
-    _launcherDirCache = await ensure(dir);
+    final appSupport = await getMeridixSupportDirectory();
+    _launcherDirCache = await ensure(appSupport);
     return _launcherDirCache!;
   }
 
@@ -122,4 +121,37 @@ class DesktopFileService implements FileService {
       return 'aarch64';
     return 'x64';
   }
+}
+
+/// A global helper to get the central Meridix Launcher application directory,
+/// bypassing the default bundle identifiers for clean paths on all platforms.
+Future<Directory> getMeridixSupportDirectory() async {
+  if (Platform.isMacOS) {
+    final home = Platform.environment['HOME'];
+    if (home != null) {
+      final dir = Directory(p.join(home, 'Library', 'Application Support', 'Meridix Launcher'));
+      if (!dir.existsSync()) await dir.create(recursive: true);
+      return dir;
+    }
+  } else if (Platform.isWindows) {
+    final appData = Platform.environment['APPDATA'];
+    if (appData != null) {
+      final dir = Directory(p.join(appData, 'Meridix Launcher'));
+      if (!dir.existsSync()) await dir.create(recursive: true);
+      return dir;
+    }
+  } else if (Platform.isLinux) {
+    final home = Platform.environment['HOME'];
+    if (home != null) {
+      final dir = Directory(p.join(home, '.config', 'Meridix Launcher'));
+      if (!dir.existsSync()) await dir.create(recursive: true);
+      return dir;
+    }
+  }
+  
+  // Fallback
+  final base = await getApplicationSupportDirectory();
+  final dir = Directory(p.join(base.path, 'Meridix Launcher'));
+  if (!dir.existsSync()) await dir.create(recursive: true);
+  return dir;
 }

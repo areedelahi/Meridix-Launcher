@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
+import '../../../core/platform/file_service.dart';
 import 'package:path/path.dart' as p;
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -997,7 +997,7 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
 
     await ref.read(instancesProvider.notifier).updateInstance(updated);
     try {
-      final baseDir = await getApplicationSupportDirectory();
+      final baseDir = await getMeridixSupportDirectory();
       final logDir = Directory(p.join(baseDir.path, 'logs'));
       if (!await logDir.exists()) {
         await logDir.create(recursive: true);

@@ -615,6 +615,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           total: dco_decode_opt_box_autoadd_u_64(raw[3]),
         );
       case 5:
+        return DartProgressEvent_PlanProgress(
+          completedBytes: dco_decode_u_64(raw[1]),
+          totalBytes: dco_decode_u_64(raw[2]),
+        );
+      case 6:
         return DartProgressEvent_InstallComplete(
           versionId: dco_decode_String(raw[1]),
         );
@@ -854,6 +859,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         return DartProgressEvent_BytesReceived(
             label: var_label, received: var_received, total: var_total);
       case 5:
+        var var_completedBytes = sse_decode_u_64(deserializer);
+        var var_totalBytes = sse_decode_u_64(deserializer);
+        return DartProgressEvent_PlanProgress(
+            completedBytes: var_completedBytes, totalBytes: var_totalBytes);
+      case 6:
         var var_versionId = sse_decode_String(deserializer);
         return DartProgressEvent_InstallComplete(versionId: var_versionId);
       default:
@@ -1123,8 +1133,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(label, serializer);
         sse_encode_u_64(received, serializer);
         sse_encode_opt_box_autoadd_u_64(total, serializer);
-      case DartProgressEvent_InstallComplete(versionId: final versionId):
+      case DartProgressEvent_PlanProgress(
+          completedBytes: final completedBytes,
+          totalBytes: final totalBytes
+        ):
         sse_encode_i_32(5, serializer);
+        sse_encode_u_64(completedBytes, serializer);
+        sse_encode_u_64(totalBytes, serializer);
+      case DartProgressEvent_InstallComplete(versionId: final versionId):
+        sse_encode_i_32(6, serializer);
         sse_encode_String(versionId, serializer);
     }
   }

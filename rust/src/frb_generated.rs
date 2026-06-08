@@ -663,6 +663,14 @@ impl SseDecode for crate::api::installer::DartProgressEvent {
                 };
             }
             5 => {
+                let mut var_completedBytes = <u64>::sse_decode(deserializer);
+                let mut var_totalBytes = <u64>::sse_decode(deserializer);
+                return crate::api::installer::DartProgressEvent::PlanProgress {
+                    completed_bytes: var_completedBytes,
+                    total_bytes: var_totalBytes,
+                };
+            }
+            6 => {
                 let mut var_versionId = <String>::sse_decode(deserializer);
                 return crate::api::installer::DartProgressEvent::InstallComplete {
                     version_id: var_versionId,
@@ -964,8 +972,17 @@ impl flutter_rust_bridge::IntoDart for crate::api::installer::DartProgressEvent 
                 total.into_into_dart().into_dart(),
             ]
             .into_dart(),
+            crate::api::installer::DartProgressEvent::PlanProgress {
+                completed_bytes,
+                total_bytes,
+            } => [
+                5.into_dart(),
+                completed_bytes.into_into_dart().into_dart(),
+                total_bytes.into_into_dart().into_dart(),
+            ]
+            .into_dart(),
             crate::api::installer::DartProgressEvent::InstallComplete { version_id } => {
-                [5.into_dart(), version_id.into_into_dart().into_dart()].into_dart()
+                [6.into_dart(), version_id.into_into_dart().into_dart()].into_dart()
             }
             _ => {
                 unimplemented!("");
@@ -1183,8 +1200,16 @@ impl SseEncode for crate::api::installer::DartProgressEvent {
                 <u64>::sse_encode(received, serializer);
                 <Option<u64>>::sse_encode(total, serializer);
             }
-            crate::api::installer::DartProgressEvent::InstallComplete { version_id } => {
+            crate::api::installer::DartProgressEvent::PlanProgress {
+                completed_bytes,
+                total_bytes,
+            } => {
                 <i32>::sse_encode(5, serializer);
+                <u64>::sse_encode(completed_bytes, serializer);
+                <u64>::sse_encode(total_bytes, serializer);
+            }
+            crate::api::installer::DartProgressEvent::InstallComplete { version_id } => {
+                <i32>::sse_encode(6, serializer);
                 <String>::sse_encode(version_id, serializer);
             }
             _ => {
