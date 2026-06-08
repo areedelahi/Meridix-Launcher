@@ -25,8 +25,6 @@ class PlayerViewerDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    // We use mc-heads.net for instant 3D isometric rendering.
-    // It accepts the raw texture ID, which bypasses all Mojang and CDN caches!
     String imageUrl;
     if (account.skinUrl != null) {
       final uri = Uri.parse(account.skinUrl!);

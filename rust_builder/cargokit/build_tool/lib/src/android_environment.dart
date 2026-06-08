@@ -1,5 +1,4 @@
-/// This is copied from Cargokit (which is the official way to use it currently)
-/// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
+
 
 import 'dart:io';
 import 'dart:isolate';
@@ -39,19 +38,14 @@ class AndroidEnvironment {
     ]);
   }
 
-  /// Full path to Android SDK.
   final String sdkPath;
 
-  /// Full version of Android NDK.
   final String ndkVersion;
 
-  /// Minimum supported SDK version.
   final int minSdkVersion;
 
-  /// Target directory for build artifacts.
   final String targetTempDir;
 
-  /// Target being built.
   final Target target;
 
   bool ndkIsInstalled() {
@@ -145,8 +139,6 @@ class AndroidEnvironment {
       runRustTool,
     ));
 
-    // Make sure that run_build_tool is working properly even initially launched directly
-    // through dart run.
     final toolTempDir =
         Platform.environment['CARGOKIT_TOOL_TEMP_DIR'] ?? targetTempDir;
 
@@ -159,14 +151,13 @@ class AndroidEnvironment {
       ranlibKey: ranlibValue,
       rustFlagsKey: rustFlagsValue,
       linkerKey: selfPath,
-      // Recognized by main() so we know when we're acting as a wrapper
+
       '_CARGOKIT_NDK_LINK_TARGET': targetArg,
       '_CARGOKIT_NDK_LINK_CLANG': ccValue,
       'CARGOKIT_TOOL_TEMP_DIR': toolTempDir,
     };
   }
 
-  // Workaround for libgcc missing in NDK23, inspired by cargo-ndk
   String _libGccWorkaround(String buildDir, Version ndkVersion) {
     final workaroundDir = path.join(
       buildDir,
@@ -179,8 +170,7 @@ class AndroidEnvironment {
       File(path.join(workaroundDir, 'libgcc.a'))
           .writeAsStringSync('INPUT(-lunwind)');
     } else {
-      // Other way around, untested, forward libgcc.a from libunwind once Rust
-      // gets updated for NDK23+.
+
       File(path.join(workaroundDir, 'libunwind.a'))
           .writeAsStringSync('INPUT(-lgcc)');
     }

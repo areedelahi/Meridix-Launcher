@@ -50,54 +50,36 @@ class Instance extends Equatable {
     this.sourceModpackVersionId,
   });
 
-  /// Unique folder name (e.g. "my_modpack")
   final String id;
 
-  /// Display name (e.g. "My Awesome Modpack")
   final String name;
 
-  /// Vanilla Minecraft version (e.g. "1.20.4")
   final String minecraftVersion;
 
-  /// Which loader this instance uses
   final ModLoader loader;
 
-  /// The version of the loader (e.g. "0.15.7")
   final String? loaderVersion;
 
-  /// The installed profile ID (e.g. "fabric-loader-0.15.7-1.20.4")
   final String? profileId;
 
-  /// Base64 string or asset name for the icon
   final String icon;
 
-  /// Total play time in milliseconds
   final int playTimeMs;
 
-  /// When this instance was last launched
   final DateTime? lastPlayed;
 
-  // --- Instance-Specific Overrides ---
-
-  /// Custom Java executable path. If null, uses global setting.
   final String? javaPath;
 
-  /// Custom minimum RAM allocation in MB. If null, uses global setting.
   final int? minAllocatedRamMb;
 
-  /// Custom maximum RAM allocation in MB. If null, uses global setting.
   final int? allocatedRamMb;
 
-  /// Custom JVM arguments. If null, uses global setting.
   final String? jvmArgs;
 
-  /// Index used to manually reorder the instances.
   final int sortIndex;
 
-  /// The Modrinth project ID (slug) this instance was installed from, if applicable.
   final String? sourceModpackId;
 
-  /// The Modrinth version ID this instance is currently on, if applicable.
   final String? sourceModpackVersionId;
 
   factory Instance.fromJson(Map<String, dynamic> json) {

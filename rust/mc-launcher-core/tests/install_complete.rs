@@ -101,7 +101,7 @@ fn inherited_version_downloads_client_to_parent_jar_path() {
                 "client":{
                     "sha1":"client-sha1",
                     "size":1,
-                    "url":"https://example.invalid/client.jar"
+                    "url":"https:
                 }
             }
         }"#,

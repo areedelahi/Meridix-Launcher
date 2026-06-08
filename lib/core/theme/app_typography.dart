@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Typography tokens for LiquidLauncher.
-/// Uses Inter for all UI text and JetBrains Mono for console/code.
 class AppTypography {
   AppTypography._();
 
-  // ── Font families ──────────────────────────────────────────────────────────
-
   static String get fontFamily => GoogleFonts.inter().fontFamily!;
   static const String monoFontFamily = 'monospace';
-
-  // ── Scale (sp values) ──────────────────────────────────────────────────────
 
   static const double xs = 11.0;
   static const double sm = 12.0;
@@ -22,8 +16,6 @@ class AppTypography {
   static const double xl2 = 22.0;
   static const double xl3 = 28.0;
   static const double xl4 = 36.0;
-
-  // ── Named styles (un-coloured — colour applied from AppColors) ─────────────
 
   static TextStyle get displayLarge => GoogleFonts.inter(
         fontSize: xl4,
@@ -109,7 +101,6 @@ class AppTypography {
         height: 1.4,
       );
 
-  /// Monospace style for console/log output.
   static TextStyle get mono => const TextStyle(
         fontFamily: 'monospace',
         fontSize: sm,
@@ -126,15 +117,12 @@ class AppTypography {
         height: 1.6,
       );
 
-  /// Version / badge chip text.
   static TextStyle get versionBadge => GoogleFonts.inter(
         fontSize: xs,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.3,
         height: 1.0,
       );
-
-  // ── TextTheme assembled ────────────────────────────────────────────────────
 
   static TextTheme buildTextTheme(Color defaultColor) {
     return TextTheme(

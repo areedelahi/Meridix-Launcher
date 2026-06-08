@@ -30,7 +30,7 @@ class InstancesNotifier extends StateNotifier<AsyncValue<List<Instance>>> {
     try {
       state = const AsyncValue.loading();
       final instances = await _repository.getInstances();
-      // Sort by sortIndex
+
       instances.sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
       state = AsyncValue.data(instances);
     } catch (e, st) {
@@ -93,33 +93,33 @@ class InstancesNotifier extends StateNotifier<AsyncValue<List<Instance>>> {
   Future<void> reorderInstances(int oldIndex, int newIndex) async {
     if (state is! AsyncData) return;
     final currentList = List<Instance>.from(state.value!);
-    
+
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
-    
+
     final item = currentList.removeAt(oldIndex);
     currentList.insert(newIndex, item);
-    
+
     for (int i = 0; i < currentList.length; i++) {
       currentList[i] = currentList[i].copyWith(sortIndex: i);
       await _repository.saveInstance(currentList[i]);
     }
-    
+
     state = AsyncValue.data(currentList);
   }
 
   Future<void> sortAlphabetically() async {
     if (state is! AsyncData) return;
     final currentList = List<Instance>.from(state.value!);
-    
+
     currentList.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-    
+
     for (int i = 0; i < currentList.length; i++) {
       currentList[i] = currentList[i].copyWith(sortIndex: i);
       await _repository.saveInstance(currentList[i]);
     }
-    
+
     state = AsyncValue.data(currentList);
   }
 }

@@ -38,17 +38,16 @@ Future<void> main(List<String> args) async {
     return;
   }
 
+  // Catch uncaught async errors that bypass Flutter's error handlers
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
 
-    // Initialize logger file
     try {
       final dir = await getMeridixSupportDirectory();
       final logDir = Directory(p.join(dir.path, 'logs'));
       if (!await logDir.exists()) await logDir.create(recursive: true);
       _globalLogFile = File(p.join(logDir.path, 'latest.log'));
 
-      // Wipe old log on fresh startup
       if (await _globalLogFile!.exists()) {
         await _globalLogFile!.delete();
       }
@@ -72,12 +71,12 @@ Future<void> main(List<String> args) async {
     await RustLib.init();
     _logInfo('Rust bridge initialized');
 
-    // ── Window setup ────────────────────────────────────────────────────────
     _logInfo('Initializing acrylic/window libraries');
     await Window.initialize();
     await windowManager.ensureInitialized();
     _logInfo('Window libraries initialized');
 
+    // macOS hides native title bar for custom window chrome
     final options = WindowOptions(
       size: const Size(1280, 800),
       minimumSize: const Size(960, 640),
@@ -118,6 +117,7 @@ Future<void> main(List<String> args) async {
       _logInfo('Main window shown');
     });
 
+    // ProviderScope enables Riverpod state management throughout app
     _logInfo('Running Flutter app');
     runApp(const ProviderScope(child: MeridixLauncherApp()));
   }, (error, stack) {

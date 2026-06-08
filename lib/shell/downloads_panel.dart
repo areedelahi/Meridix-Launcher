@@ -72,7 +72,7 @@ class DownloadsPanel extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Header
+
           Container(
             padding: const EdgeInsets.all(AppSpacing.px16),
             decoration: BoxDecoration(
@@ -94,7 +94,6 @@ class DownloadsPanel extends ConsumerWidget {
             ),
           ),
 
-          // Task List
           Flexible(
             child: tasks.isEmpty
                 ? Padding(

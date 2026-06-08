@@ -6,12 +6,10 @@ import '../presentation/microsoft_login_screen.dart';
 import 'package:desktop_webview_window/desktop_webview_window.dart';
 import '../domain/user_account.dart';
 
-/// Official Minecraft Launcher Client ID (v1.0 MSA)
 const _clientId = '00000000402b5328';
 const _scopes = 'service::user.auth.xboxlive.com::MBI_SSL';
 const _redirectUri = 'https://login.live.com/oauth20_desktop.srf';
 
-/// Full production Microsoft → Xbox → Minecraft OAuth chain using MSA v1.0.
 class MsAuthService {
   final _dio = Dio();
 
@@ -21,7 +19,7 @@ class MsAuthService {
       LogInterceptor(
         request: true,
         requestHeader: true,
-        requestBody: false, // multipart bodies are messy to log
+        requestBody: false, 
         responseHeader: true,
         responseBody: true,
         error: true,
@@ -29,13 +27,8 @@ class MsAuthService {
     );
   }
 
-  // ── Main entry point ──────────────────────────────────────────────────────
-
-  /// Full login flow. Opens an embedded WebView, waits for code, exchanges tokens,
-  /// authenticates with Xbox + Minecraft, and returns a [UserAccount].
-  /// Start the MSA v1.0 OAuth flow and return a fully resolved Microsoft token.
   Future<UserAccount> loginWithBrowser(BuildContext context) async {
-    // Build authorization URL (MSA v1.0)
+
     final authUrl = Uri.https(
       'login.live.com',
       '/oauth20_authorize.srf',
@@ -43,14 +36,14 @@ class MsAuthService {
         'client_id': _clientId,
         'response_type': 'code',
         'redirect_uri':
-            _redirectUri, // This MUST be the official desktop.srf endpoint
+            _redirectUri, 
         'scope': _scopes,
       },
     );
 
     String code;
     if (Platform.isWindows || Platform.isMacOS) {
-      // Use the in-app embedded WebView on desktop platforms that support it.
+
       final result = await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => MicrosoftLoginScreen(
@@ -66,30 +59,24 @@ class MsAuthService {
       }
       code = result as String;
     } else {
-      // Linux keeps the desktop WebView popup fallback until an embedded
-      // Linux WebView is available.
+
       code = await _getCodeFromWebView(authUrl.toString());
     }
 
-    // Exchange code for MS tokens (MSA v1.0)
     final msTokens = await _exchangeCodeForMsToken(
       code: code,
       redirectUri: _redirectUri,
     );
 
-    // Xbox Live
     final xblToken = await _authenticateWithXbl(msTokens['access_token']!);
 
-    // XSTS
     final xstsResult = await _authenticateWithXsts(xblToken);
 
-    // Minecraft
     final mcTokens = await _loginWithMinecraft(
       xstsResult['xstsToken']!,
       xstsResult['userHash']!,
     );
 
-    // Profile
     final profile = await _fetchMinecraftProfile(mcTokens['accessToken']!);
     final skinUrl = _extractSkinUrl(profile);
     final capes = _extractCapes(profile);
@@ -113,10 +100,6 @@ class MsAuthService {
     );
   }
 
-  // ── Refresh tokens ────────────────────────────────────────────────────────
-
-  /// Refreshes a Microsoft access token using the stored refresh token,
-  /// then re-authenticates with Xbox → XSTS → Minecraft.
   Future<UserAccount> refreshAccount(UserAccount account) async {
     if (account.type != 'microsoft') return account;
 
@@ -128,7 +111,6 @@ class MsAuthService {
       xstsResult['userHash']!,
     );
 
-    // Re-fetch profile to get updated skin URL and capes
     final profile = await _fetchMinecraftProfile(mcTokens['accessToken']!);
     final skinUrl = _extractSkinUrl(profile);
     final capes = _extractCapes(profile);
@@ -146,10 +128,6 @@ class MsAuthService {
     );
   }
 
-  // ── Skin upload ───────────────────────────────────────────────────────────
-
-  /// Uploads a new skin file to the Minecraft profile.
-  /// [variant] must be 'classic' or 'slim'.
   Future<void> uploadSkin({
     required String mcAccessToken,
     required String filePath,
@@ -203,13 +181,10 @@ class MsAuthService {
     );
   }
 
-  /// Fetches the current profile for an account by re-fetching the profile.
   Future<String?> fetchSkinUrl(String mcAccessToken) async {
     final profile = await _fetchMinecraftProfile(mcAccessToken);
     return _extractSkinUrl(profile);
   }
-
-  // ── Linux fallback: desktop WebView popup ────────────────────────────────
 
   Future<String> _getCodeFromWebView(String url) async {
     final completer = Completer<String>();
@@ -256,8 +231,6 @@ class MsAuthService {
 
     return completer.future;
   }
-
-  // ── Internal: OAuth token exchange (MSA v1.0) ───────────────────────────
 
   Future<Map<String, String>> _exchangeCodeForMsToken({
     required String code,
@@ -316,8 +289,6 @@ class MsAuthService {
     }
   }
 
-  // ── Internal: Xbox Live ───────────────────────────────────────────────────
-
   Future<String> _authenticateWithXbl(String msAccessToken) async {
     final resp = await _dio.post<Map<String, dynamic>>(
       'https://user.auth.xboxlive.com/user/authenticate',
@@ -338,8 +309,6 @@ class MsAuthService {
     );
     return resp.data!['Token'] as String;
   }
-
-  // ── Internal: XSTS ───────────────────────────────────────────────────────
 
   Future<Map<String, String>> _authenticateWithXsts(String xblToken) async {
     final resp = await _dio.post<Map<String, dynamic>>(
@@ -386,8 +355,6 @@ class MsAuthService {
     };
   }
 
-  // ── Internal: Minecraft auth ──────────────────────────────────────────────
-
   Future<Map<String, String>> _loginWithMinecraft(
     String xstsToken,
     String userHash,
@@ -408,8 +375,6 @@ class MsAuthService {
     };
   }
 
-  // ── Internal: MC profile ──────────────────────────────────────────────────
-
   Future<Map<String, dynamic>> _fetchMinecraftProfile(
       String mcAccessToken) async {
     final resp = await _dio.get<Map<String, dynamic>>(
@@ -420,7 +385,7 @@ class MsAuthService {
           'Accept': 'application/json',
         },
         responseType: ResponseType.json,
-        validateStatus: (s) => true, // handle 404 manually
+        validateStatus: (s) => true, 
       ),
     );
     if (resp.statusCode == 404) {
@@ -436,19 +401,16 @@ class MsAuthService {
     return resp.data!;
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
-
-  /// Extracts the active skin URL from a Minecraft profile response.
   String? _extractSkinUrl(Map<String, dynamic> profile) {
     final skins = profile['skins'] as List<dynamic>?;
     if (skins == null || skins.isEmpty) return null;
-    // Find the active skin
+
     for (final skin in skins) {
       if ((skin as Map<String, dynamic>)['state'] == 'ACTIVE') {
         return skin['url'] as String?;
       }
     }
-    // Fallback to first skin
+
     return (skins.first as Map<String, dynamic>)['url'] as String?;
   }
 
@@ -480,7 +442,7 @@ class MsAuthService {
   }
 
   String _formatUuid(String raw) {
-    // Mojang returns UUID without hyphens
+
     if (raw.contains('-')) return raw;
     return '${raw.substring(0, 8)}-${raw.substring(8, 12)}-'
         '${raw.substring(12, 16)}-${raw.substring(16, 20)}-${raw.substring(20)}';

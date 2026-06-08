@@ -37,18 +37,15 @@ pub fn extract_natives_file(
     extract_path: impl AsRef<Path>,
     extract_data: &HashMap<String, Vec<String>>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    // 如果提取目录不存在，则创建
+
     let _ = fs::create_dir_all(&extract_path);
 
-    // 打开 ZIP 文件
     let file = fs::File::open(filename)?;
     let mut archive = ZipArchive::new(file)?;
 
-    // 遍历 ZIP 存档中的每个文件
     for i in 0..archive.len() {
         let mut file = archive.by_index(i)?;
 
-        // 检查是否应排除文件
         let mut should_exclude = false;
         for e in extract_data.get("exclude").expect("not exist key: exclude") {
             if file.name().starts_with(e) {
@@ -57,7 +54,6 @@ pub fn extract_natives_file(
             }
         }
 
-        // 如果不应排除文件，则提取文件
         if !should_exclude {
             let mut output_file =
                 fs::File::create(Path::new(extract_path.as_ref()).join(file.name()))?;
@@ -104,7 +100,6 @@ pub fn extract_natives(
             continue;
         }
 
-        // 获取目录路径
         let lib_path = current_path.parent().unwrap_or_else(|| Path::new(""));
         let file_name = current_path
             .file_name()
@@ -112,7 +107,6 @@ pub fn extract_natives(
             .unwrap_or("");
         let lib_path_with_filename = lib_path.join(file_name);
 
-        // 获取文件扩展名
         let extension = current_path
             .extension()
             .and_then(|e| e.to_str())

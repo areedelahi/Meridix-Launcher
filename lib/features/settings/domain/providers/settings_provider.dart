@@ -7,6 +7,7 @@ import '../models/app_settings.dart';
 
 class SettingsNotifier extends StateNotifier<AppSettings> {
   SettingsNotifier() : super(const AppSettings()) {
+    // Load persisted preferences from SharedPreferences on init
     _load();
   }
 
@@ -57,29 +58,30 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<bool> saveSettings(AppSettings newSettings) async {
     final prefs = await SharedPreferences.getInstance();
     final oldDir = prefs.getString('customDataDirectory');
+    // Detect if data directory changed for migration handling
     bool directoryChanged = oldDir != newSettings.customDataDirectory;
-    
+
     await prefs.setInt('minMemoryMb', newSettings.minMemoryMb);
     await prefs.setInt('maxMemoryMb', newSettings.maxMemoryMb);
-    
+
     if (newSettings.javaExecutable != null && newSettings.javaExecutable!.isNotEmpty) {
       await prefs.setString('javaExecutable', newSettings.javaExecutable!);
     } else {
       await prefs.remove('javaExecutable');
     }
-    
+
     if (newSettings.jvmArgs != null && newSettings.jvmArgs!.isNotEmpty) {
       await prefs.setString('jvmArgs', newSettings.jvmArgs!);
     } else {
       await prefs.remove('jvmArgs');
     }
-    
+
     if (newSettings.customDataDirectory != null && newSettings.customDataDirectory!.isNotEmpty) {
       await prefs.setString('customDataDirectory', newSettings.customDataDirectory!);
     } else {
       await prefs.remove('customDataDirectory');
     }
-    
+
     await prefs.setBool('closeOnLaunch', newSettings.closeOnLaunch);
     state = newSettings;
     try {
@@ -91,7 +93,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       final logFile = File(p.join(logDir.path, 'save_log.txt'));
       await logFile.writeAsString('Global Save: min=${newSettings.minMemoryMb}, max=${newSettings.maxMemoryMb}, jvmArgs=${newSettings.jvmArgs}\n', mode: FileMode.append);
     } catch (_) {}
-    
+
     return directoryChanged;
   }
 }

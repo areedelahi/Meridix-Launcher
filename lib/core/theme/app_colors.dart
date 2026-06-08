@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Brand color palette as a ThemeExtension — injected globally via ThemeData.
-/// Access anywhere: Theme.of(context).extension<AppColors>()!
 @immutable
 class AppColors extends ThemeExtension<AppColors> {
   const AppColors({
@@ -25,7 +23,7 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.sidebarBg,
     required this.sidebarSelected,
     required this.divider,
-    // Mod loader brand colours
+
     required this.vanilla,
     required this.fabric,
     required this.quilt,
@@ -59,14 +57,13 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color forge;
   final Color neoforge;
 
-  /// The canonical dark theme palette.
   static const AppColors dark = AppColors(
     background: Color(0xFF0C0E13),
     surface: Color(0xFF12151C),
     surfaceElevated: Color(0xFF181C26),
-    glass: Color(0x0FFFFFFF), // ~6% white
-    glassBorder: Color(0x1AFFFFFF), // ~10% white
-    primary: Color(0xFF4A80FF), // lighter electric blue accent
+    glass: Color(0x0FFFFFFF), 
+    glassBorder: Color(0x1AFFFFFF), 
+    primary: Color(0xFF4A80FF), 
     primaryHover: Color(0xFF759FFF),
     primaryMuted: Color(0x334A80FF),
     danger: Color(0xFFFF4F6B),
@@ -178,7 +175,6 @@ class AppColors extends ThemeExtension<AppColors> {
   }
 }
 
-/// Convenience extension on BuildContext.
 extension AppColorsX on BuildContext {
   AppColors get colors => Theme.of(this).extension<AppColors>()!;
 }

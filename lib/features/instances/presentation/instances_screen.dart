@@ -42,7 +42,7 @@ class _InstancesScreenState extends ConsumerState<InstancesScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Toolbar ────────────────────────────────────────────────
+
         _Toolbar(
           onSearchChanged: (v) => setState(() => _search = v),
           onNewInstance: () => _showNewInstanceDialog(context),
@@ -54,7 +54,6 @@ class _InstancesScreenState extends ConsumerState<InstancesScreen> {
           },
         ),
 
-        // ── Grid ───────────────────────────────────────────────────
         Expanded(
           child: instancesAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -100,11 +99,11 @@ class _InstancesScreenState extends ConsumerState<InstancesScreen> {
                       icon: inst.icon,
                       loader: inst.loader.displayName,
                       loaderVersion: inst.loaderVersion ?? '',
-                      modsCount: 0, // TODO: Compute from mods folder
+                      modsCount: 0, 
                       lastPlayed: inst.lastPlayed != null
                           ? '${inst.lastPlayed!.day}/${inst.lastPlayed!.month}/${inst.lastPlayed!.year}'
                           : 'Never played',
-                      isRunning: false, // TODO: Check process
+                      isRunning: false, 
                       iconColor: _getColorForLoader(inst.loader.name),
                       isSelected: ref.watch(selectedInstanceIdProvider) == inst.id,
                       onTap: () {
@@ -153,8 +152,6 @@ class _InstancesScreenState extends ConsumerState<InstancesScreen> {
   }
 }
 
-// ── Toolbar ──────────────────────────────────────────────────────────────────
-
 class _Toolbar extends StatelessWidget {
   const _Toolbar({required this.onSearchChanged, required this.onNewInstance, required this.onSortAlphabetically, required this.onRefresh});
   final ValueChanged<String> onSearchChanged;
@@ -185,7 +182,7 @@ class _Toolbar extends StatelessWidget {
             style: AppTypography.titleLarge.copyWith(color: colors.textHigh),
           ),
           const SizedBox(width: AppSpacing.px24),
-          // Search bar — intrinsic height, vertically centred by Row
+
           SizedBox(
             width: 220,
             child: AppTextField(
@@ -218,8 +215,6 @@ class _Toolbar extends StatelessWidget {
     );
   }
 }
-
-// ── Empty state ───────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState({required this.onNew});
@@ -261,4 +256,3 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-// ── Stub model ────────────────────────────────────────────────────────────────

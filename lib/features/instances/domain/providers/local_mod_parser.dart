@@ -23,18 +23,16 @@ class LocalModMetadata {
 class LocalModParser {
   static Future<LocalModMetadata?> parse(File file) async {
     try {
-      // Check for level.dat (Worlds)
+
       if (await file.stat().then((s) => s.type == FileSystemEntityType.directory)) {
         final levelDat = File('${file.path}/level.dat');
         if (await levelDat.exists()) {
           final bytes = await levelDat.readAsBytes();
-          // level.dat is GZip compressed NBT
+
           final unzipped = GZipDecoder().decodeBytes(bytes);
-          
-          // Search for "LevelName" in the unzipped bytes
-          // NBT String: 08 (Tag_String), then 00 09 (Length 9), then 4C 65 76 65 6C 4E 61 6D 65 (LevelName)
+
           final searchPattern = [0x08, 0x00, 0x09, 0x4C, 0x65, 0x76, 0x65, 0x6C, 0x4E, 0x61, 0x6D, 0x65];
-          
+
           String? worldName;
           for (int i = 0; i < unzipped.length - searchPattern.length - 2; i++) {
             bool match = true;
@@ -45,7 +43,7 @@ class LocalModParser {
               }
             }
             if (match) {
-              // Read string length (2 bytes, big-endian)
+
               final strLen = (unzipped[i + searchPattern.length] << 8) | unzipped[i + searchPattern.length + 1];
               final strStart = i + searchPattern.length + 2;
               if (strStart + strLen <= unzipped.length) {
@@ -67,12 +65,11 @@ class LocalModParser {
       final bytes = await file.readAsBytes();
       final archive = ZipDecoder().decodeBytes(bytes);
 
-      // Check for fabric.mod.json
       final fabricJson = archive.findFile('fabric.mod.json');
       if (fabricJson != null) {
         final content = utf8.decode(fabricJson.content as List<int>);
         final map = jsonDecode(content) as Map<String, dynamic>;
-        
+
         final authors = map['authors'];
         String? authorStr;
         if (authors is List && authors.isNotEmpty) {
@@ -88,12 +85,10 @@ class LocalModParser {
         );
       }
 
-      // Check for META-INF/mods.toml (Forge) or META-INF/neoforge.mods.toml
       final forgeToml = archive.findFile('META-INF/mods.toml') ?? archive.findFile('META-INF/neoforge.mods.toml');
       if (forgeToml != null) {
         final content = utf8.decode(forgeToml.content as List<int>);
-        // A simple regex parser for TOML since we don't have a full toml parser package.
-        // It's basic but sufficient for metadata.
+
         String extract(String key) {
           final match = RegExp('$key\\s*=\\s*"([^"]+)"').firstMatch(content);
           return match?.group(1) ?? '';
@@ -109,13 +104,12 @@ class LocalModParser {
         );
       }
 
-      // Check for pack.mcmeta (Resourcepacks)
       final packMcmeta = archive.findFile('pack.mcmeta');
       if (packMcmeta != null) {
         final content = utf8.decode(packMcmeta.content as List<int>);
         final map = jsonDecode(content) as Map<String, dynamic>;
         final pack = map['pack'] as Map<String, dynamic>?;
-        
+
         return LocalModMetadata(
           id: file.uri.pathSegments.last,
           name: file.uri.pathSegments.last,
@@ -125,7 +119,7 @@ class LocalModParser {
       }
     } catch (e, stack) {
       print('LocalModParser error: \$e\\n\$stack');
-      // Ignored, not a valid zip or missing metadata
+
     }
     return null;
   }

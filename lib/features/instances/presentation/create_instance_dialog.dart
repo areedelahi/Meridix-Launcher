@@ -43,10 +43,10 @@ class _CreateInstanceDialogState extends ConsumerState<CreateInstanceDialog> {
 
   bool _isVersionSupportedByLoader(String mcVersion, String loader) {
     if (loader == 'Vanilla') return true;
-    
+
     final parts = mcVersion.split('.');
     if (parts.isEmpty) return true;
-    
+
     final major = int.tryParse(parts[0]) ?? 1;
     final minor = parts.length > 1 ? int.tryParse(parts[1].split(RegExp(r'[-a-zA-Z]'))[0]) ?? 0 : 0;
     final patch = parts.length > 2 ? int.tryParse(parts[2].split(RegExp(r'[-a-zA-Z]'))[0]) ?? 0 : 0;
@@ -57,13 +57,13 @@ class _CreateInstanceDialogState extends ConsumerState<CreateInstanceDialog> {
       if (major == 1 && minor == 20 && patch >= 1) return true;
       return false;
     }
-    
+
     if (loader == 'Fabric' || loader == 'Quilt') {
       if (major > 1) return true;
       if (major == 1 && minor >= 14) return true;
       return false;
     }
-    
+
     if (loader == 'Forge') {
       return true;
     }
@@ -88,13 +88,13 @@ class _CreateInstanceDialogState extends ConsumerState<CreateInstanceDialog> {
       minecraftVersion: _version!,
       loader: ModLoader.fromString(_loader),
       loaderVersion: _loader == 'Vanilla' ? null : _loaderVersion,
-      icon: 'grass_block', // default icon
+      icon: 'grass_block', 
       playTimeMs: 0,
     );
 
     ref.read(instancesProvider.notifier).addInstance(newInstance);
     ref.read(downloadsProvider.notifier).startDownload(newInstance);
-    
+
     Navigator.of(context).pop();
   }
 
@@ -102,7 +102,6 @@ class _CreateInstanceDialogState extends ConsumerState<CreateInstanceDialog> {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    // Fetch versions
     final vanillaAsync = ref.watch(vanillaVersionsProvider);
     final modLoaderAsync = _getLoaderVersions(_loader);
 
@@ -119,7 +118,7 @@ class _CreateInstanceDialogState extends ConsumerState<CreateInstanceDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Header ──────────────────────────────────────────────────
+
             Row(
               children: [
                 Icon(Icons.add_box_rounded, color: colors.primary, size: 28),
@@ -137,7 +136,6 @@ class _CreateInstanceDialogState extends ConsumerState<CreateInstanceDialog> {
             ),
             const SizedBox(height: AppSpacing.px24),
 
-            // ── Body ────────────────────────────────────────────────────
             Text('Name',
                 style:
                     AppTypography.labelLarge.copyWith(color: colors.textMed)),
@@ -148,7 +146,6 @@ class _CreateInstanceDialogState extends ConsumerState<CreateInstanceDialog> {
             ),
             const SizedBox(height: AppSpacing.px20),
 
-            // Minecraft Version
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -176,7 +173,6 @@ class _CreateInstanceDialogState extends ConsumerState<CreateInstanceDialog> {
                               return _showSnapshots || v.versionType == 'release';
                             }).map((v) => v.id).toList();
 
-                            // Ensure selected version is valid
                             if (_version == null || !filtered.contains(_version)) {
                               WidgetsBinding.instance.addPostFrameCallback((_) {
                                 if (mounted && filtered.isNotEmpty) {
@@ -237,7 +233,6 @@ class _CreateInstanceDialogState extends ConsumerState<CreateInstanceDialog> {
             ),
             const SizedBox(height: AppSpacing.px20),
 
-            // Mod Loader
             Text('Mod Loader',
                 style:
                     AppTypography.labelLarge.copyWith(color: colors.textMed)),
@@ -262,7 +257,7 @@ class _CreateInstanceDialogState extends ConsumerState<CreateInstanceDialog> {
                       color: isSelected ? colors.primary : colors.glassBorder),
                   onPressed: () => setState(() {
                     _loader = l;
-                    _loaderVersion = null; // Reset when changing loader
+                    _loaderVersion = null; 
                   }),
                 );
               }).toList(),
@@ -270,7 +265,6 @@ class _CreateInstanceDialogState extends ConsumerState<CreateInstanceDialog> {
 
             const SizedBox(height: AppSpacing.px20),
 
-            // Modloader Version (Conditional)
             if (_loader != 'Vanilla')
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -292,7 +286,7 @@ class _CreateInstanceDialogState extends ConsumerState<CreateInstanceDialog> {
                               onChanged: (v) {
                                 setState(() {
                                   _showAllLoaderVersions = v ?? false;
-                                  _loaderVersion = null; // Reset selection
+                                  _loaderVersion = null; 
                                 });
                               },
                               fillColor: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.selected) ? colors.primary : Colors.transparent),
@@ -317,9 +311,7 @@ class _CreateInstanceDialogState extends ConsumerState<CreateInstanceDialog> {
                     child: modLoaderAsync?.when(
                           data: (versions) {
                             var filteredVersions = versions.toList();
-                            
-                            // Forge and NeoForge APIs return versions oldest-first, so we reverse them.
-                            // Fabric and Quilt return newest-first.
+
                             if (['Forge', 'NeoForge'].contains(_loader)) {
                               filteredVersions = filteredVersions.reversed.toList();
                             }
@@ -335,20 +327,20 @@ class _CreateInstanceDialogState extends ConsumerState<CreateInstanceDialog> {
                                   final patch = parts.length > 2 ? parts[2] : '0';
                                   prefix = patch == '0' ? '$minor.' : '$minor.$patch.';
                                 } else {
-                                  // New Mojang versioning (e.g. 26.1.2)
+
                                   prefix = '$_version.';
                                 }
                                 filteredVersions = filteredVersions.where((v) => v.startsWith(prefix)).toList();
                               }
                             }
-                            
+
                             if (filteredVersions.isEmpty) {
                               return Padding(
                                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                                 child: Text('No versions found. Try checking "Show All".', style: TextStyle(color: colors.textLow, fontSize: 12)),
                               );
                             }
-                            // Auto-select latest
+
                             if (_loaderVersion == null || !filteredVersions.contains(_loaderVersion)) {
                               WidgetsBinding.instance.addPostFrameCallback((_) {
                                 if (mounted && filteredVersions.isNotEmpty) {
@@ -388,7 +380,6 @@ class _CreateInstanceDialogState extends ConsumerState<CreateInstanceDialog> {
 
             const SizedBox(height: AppSpacing.px32),
 
-            // ── Footer ──────────────────────────────────────────────────
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [

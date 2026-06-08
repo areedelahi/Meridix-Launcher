@@ -1,8 +1,4 @@
-//! Legacy Java runtime discovery and installation helpers.
-//!
-//! The current high-level launch facade expects callers to choose Java and pass
-//! it through [`crate::command::builder::LaunchOptions::java_executable`]. These
-//! helpers remain for callers that still use the older runtime API.
+
 
 use std::{
     collections::HashMap,
@@ -83,7 +79,6 @@ pub fn install_jvm_runtime(
         .json()?;
     let platform_string = get_jvm_platform_string();
 
-    // Check if the JVM version exists
     if !manifest_data
         .get(&platform_string)
         .unwrap_or(&HashMap::new())
@@ -92,7 +87,6 @@ pub fn install_jvm_runtime(
         return Err(format!("jvm version not found: {}", jvm_version).into());
     }
 
-    // Check if there is a platform manifest
     if manifest_data
         .get(&platform_string)
         .unwrap_or(&HashMap::new())
@@ -126,7 +120,6 @@ pub fn install_jvm_runtime(
     let mut plan = crate::net::download::DownloadPlan::default();
     let mut file_list: Vec<String> = vec![];
 
-    // Download all files of the runtime
     for (key, value) in platform_manifest.files.iter() {
         let current_path = base_path.join(key);
         check_path_inside_minecraft_directory(&minecraft_directory, &current_path)?;
@@ -162,7 +155,7 @@ pub fn install_jvm_runtime(
             } else if vtype == "directory" {
                 let _ = std::fs::create_dir_all(&current_path);
             } else if vtype == "link" {
-                // Create a symbolic link at `link_path` pointing to `target`
+
                 #[cfg(unix)]
                 {
                     if let Some(target) = value.target.as_ref() {
@@ -174,7 +167,7 @@ pub fn install_jvm_runtime(
     }
 
     crate::net::download::execute_plan(&plan, reporter)?;
-    // Create the .version file
+
     let version_path = minecraft_directory
         .as_ref()
         .join("runtime")
@@ -195,7 +188,6 @@ pub fn install_jvm_runtime(
             .as_bytes(),
     )?;
 
-    // Write the .sha1 file
     let sha1_path = minecraft_directory
         .as_ref()
         .join("runtime")
@@ -206,7 +198,7 @@ pub fn install_jvm_runtime(
     let mut sha1_file = fs::File::create(&sha1_path)?;
     for file in file_list {
         let current_path = base_path.join(&file);
-        let ctime = current_path.metadata()?.modified()?.elapsed()?.as_nanos(); // Use chrono for more precise time handling
+        let ctime = current_path.metadata()?.modified()?.elapsed()?.as_nanos(); 
         let sha1 = get_sha1_hash(current_path.to_str().unwrap())?;
         sha1_file.write_all(format!("{} /#// {} {}\n", file, sha1, ctime).as_bytes())?;
     }
@@ -266,7 +258,6 @@ pub fn get_jvm_runtime_information(
 
     let platform_string = get_jvm_platform_string();
 
-    // Check if the jvm version exists
     if !manifest_data
         .get(&platform_string)
         .unwrap_or(&HashMap::new())

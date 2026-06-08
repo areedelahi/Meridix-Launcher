@@ -13,6 +13,7 @@ pub enum _InstallStage {
     Verify,
 }
 
+// Convert Rust progress events to Dart-friendly format for UI display
 #[derive(Debug, Clone)]
 pub enum DartProgressEvent {
     StageStarted { stage: String },
@@ -64,6 +65,7 @@ pub enum DartLoaderSpec {
     NeoForge { version: String },
 }
 
+// Install game version with optional loader, streaming progress events
 pub fn install_instance(
     minecraft_dir: String,
     version: String,
@@ -74,6 +76,7 @@ pub fn install_instance(
 
     let loader_spec = match loader {
         DartLoaderSpec::Vanilla => None,
+        // Map Dart enum to mc-launcher-core loader specs
         DartLoaderSpec::Fabric { version } => Some(LoaderSpec::Fabric {
             version: LoaderVersion::Exact(version),
         }),
@@ -103,7 +106,7 @@ pub fn install_instance(
     let _ = progress_sink.add(DartProgressEvent::InstallComplete {
         version_id: install_result.version_id.clone(),
     });
-    
+
     Ok(install_result.version_id)
 }
 

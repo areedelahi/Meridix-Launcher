@@ -9,6 +9,7 @@ import '../features/console/presentation/console_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import 'shell_screen.dart';
 
+// ShellRoute creates persistent navigation panel while routes change inner content
 final appRouter = GoRouter(
   initialLocation: '/',
   routes: [
@@ -73,22 +74,23 @@ CustomTransitionPage<void> _slideUpPage({
   required LocalKey key,
   required Widget child,
 }) {
+  // Fade+slide animation for screen transitions
   return CustomTransitionPage<void>(
     key: key,
     child: child,
     transitionDuration: const Duration(milliseconds: 300),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       return FadeTransition(
-        // Fade OUT the old page
+
         opacity: Tween<double>(begin: 1.0, end: 0.0).animate(
           CurvedAnimation(parent: secondaryAnimation, curve: Curves.easeOut),
         ),
         child: FadeTransition(
-          // Fade IN the new page
+
           opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
           child: SlideTransition(
             position: Tween<Offset>(
-              begin: const Offset(0.0, 0.05), // subtle slide up
+              begin: const Offset(0.0, 0.05), 
               end: Offset.zero,
             ).animate(
                 CurvedAnimation(parent: animation, curve: Curves.easeOutQuad)),

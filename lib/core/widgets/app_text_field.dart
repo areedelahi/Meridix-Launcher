@@ -3,7 +3,6 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 
-/// Styled text input with focus ring, error state, and optional prefix/suffix icons.
 class AppTextField extends StatefulWidget {
   const AppTextField({
     super.key,

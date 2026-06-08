@@ -5,7 +5,6 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/brand_icon.dart';
 
-/// Instance grid card with animated hover play overlay.
 class InstanceCard extends StatefulWidget {
   const InstanceCard({
     super.key,
@@ -93,13 +92,13 @@ class _InstanceCardState extends State<InstanceCard>
           height: AppSpacing.instanceCardHeight,
           child: Stack(
             children: [
-              // ── Card body ────────────────────────────────────────
+
               Padding(
                 padding: const EdgeInsets.all(AppSpacing.px12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Icon
+
                     Container(
                       width: 52,
                       height: 52,
@@ -116,12 +115,11 @@ class _InstanceCardState extends State<InstanceCard>
                       child: BrandIcon(
                         type: BrandIconType.fromName(widget.loader),
                         url: widget.icon,
-                        size: 36, // Slightly smaller to prevent touching the rounded edges
+                        size: 36, 
                       ),
                     ),
                     const SizedBox(height: AppSpacing.px10),
 
-                    // Name
                     Text(
                       widget.name,
                       style: AppTypography.titleSmall.copyWith(
@@ -132,7 +130,6 @@ class _InstanceCardState extends State<InstanceCard>
                     ),
                     const SizedBox(height: AppSpacing.px4),
 
-                    // Version pill
                     _Pill(
                       label: widget.version,
                       color: widget.iconColor,
@@ -179,7 +176,7 @@ class _InstanceCardState extends State<InstanceCard>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    // Footer: mods count + last played
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -214,7 +211,6 @@ class _InstanceCardState extends State<InstanceCard>
                 ),
               ),
 
-              // Hover play overlay removed since we have the launch bar
               Positioned(
                 top: AppSpacing.px8,
                 right: AppSpacing.px8,

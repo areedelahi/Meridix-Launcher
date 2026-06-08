@@ -54,15 +54,14 @@ pub fn get_java_information(path: &Path) -> Result<JavaInformation, String> {
 }
 
 fn search_java_directory<P: AsRef<Path>>(path: P) -> Vec<PathBuf> {
-    // 检查路径是否是一个目录
+
     if let Ok(entries) = fs::read_dir(&path) {
-        // 使用迭代器和 filter 进行条件筛选
+
         let java_list: Vec<PathBuf> = entries
             .filter_map(|entry| {
                 if let Ok(entry) = entry {
                     let current_entry = entry.path();
 
-                    // 如果是目录，并且包含 "bin/java" 或 "bin/java.exe" 文件，将其添加到 Java 列表中
                     if current_entry.is_dir()
                         && (current_entry.join("bin/java").is_file()
                             || current_entry.join("bin/java.exe").is_file())
@@ -80,7 +79,6 @@ fn search_java_directory<P: AsRef<Path>>(path: P) -> Vec<PathBuf> {
         return java_list;
     }
 
-    // 如果不是目录，或者读取目录失败，返回一个空列表
     Vec::new()
 }
 
@@ -126,15 +124,12 @@ mod tests {
     use super::*;
     #[test]
     fn test_get_java_information() {
-        // println!(
-        //     "{:?}",
-        //     get_java_information(Path::new(r"C:\Program Files\Java\jdk-17.0.5"))
-        // );
+
     }
 
     #[test]
     fn test_search_java_directory() {
-        // println!("{:?}", search_java_directory(r"C:\Program Files\Java"));
+
     }
 
     #[test]

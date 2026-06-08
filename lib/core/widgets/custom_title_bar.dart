@@ -5,9 +5,6 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 
-/// Frameless custom title bar.
-/// On macOS: traffic-light buttons on the LEFT, drag area, title centred.
-/// On Windows/Linux: custom min/max/close buttons on the RIGHT.
 class CustomTitleBar extends StatefulWidget {
   const CustomTitleBar({
     super.key,
@@ -71,7 +68,7 @@ class _CustomTitleBarState extends State<CustomTitleBar> with WindowListener {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // ── Centre title ─────────────────────────────────────────
+
             if (widget.title != null)
               Text(
                 widget.title!,
@@ -81,7 +78,6 @@ class _CustomTitleBarState extends State<CustomTitleBar> with WindowListener {
                 ),
               ),
 
-            // ── Left side ────────────────────────────────────────────
             Positioned(
               left: 0,
               child: Row(
@@ -97,7 +93,6 @@ class _CustomTitleBarState extends State<CustomTitleBar> with WindowListener {
               ),
             ),
 
-            // ── Right side ───────────────────────────────────────────
             Positioned(
               right: 0,
               child: Row(
@@ -139,8 +134,6 @@ class _CustomTitleBarState extends State<CustomTitleBar> with WindowListener {
     );
   }
 }
-
-// ── macOS Traffic Light Buttons ─────────────────────────────────────────────
 
 class _MacTrafficLights extends StatefulWidget {
   const _MacTrafficLights({required this.isMaximized});
@@ -236,8 +229,6 @@ class _TrafficLight extends StatelessWidget {
     );
   }
 }
-
-// ── Windows/Linux control buttons ───────────────────────────────────────────
 
 class _WinButton extends StatefulWidget {
   const _WinButton({

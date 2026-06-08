@@ -12,7 +12,7 @@ import 'curseforge_api_provider.dart';
 import 'modrinth_api_provider.dart';
 
 typedef RemoteSearchQuery = ({
-  String source, // 'modrinth' or 'curseforge'
+  String source, 
   String query,
   String folderName,
   Instance? instance,
@@ -82,7 +82,7 @@ class RemoteModsNotifier extends FamilyAsyncNotifier<List<RemoteMod>, RemoteSear
     final saveDir = await _getSaveDirectory();
     final fileUrl = version.downloadUrl;
     if (fileUrl.isEmpty) throw Exception('No download URL available for this version');
-    
+
     final fileName = version.filename;
     final savePath = p.join(saveDir, fileName);
 
@@ -116,7 +116,6 @@ class RemoteModsNotifier extends FamilyAsyncNotifier<List<RemoteMod>, RemoteSear
       throw Exception('No compatible versions found for this mod.');
     }
 
-    // Pick the latest version
     final latest = versions.first;
 
     if (latest.downloadUrl.isEmpty) {
@@ -127,18 +126,16 @@ class RemoteModsNotifier extends FamilyAsyncNotifier<List<RemoteMod>, RemoteSear
     final repo = ref.read(instanceRepositoryProvider);
     final instancePath = await repo.getInstancePath(arg.instance!.id);
     final targetDir = Directory(p.join(instancePath, arg.folderName));
-    
+
     if (!await targetDir.exists()) {
       await targetDir.create(recursive: true);
     }
 
     final targetFile = File(p.join(targetDir.path, latest.filename));
-    
-    // Download using Dio
+
     final dio = Dio();
     await dio.download(latest.downloadUrl, targetFile.path);
 
-    // Refresh local files so it shows up in Installed
     ref.read(localFilesProvider((instanceId: arg.instance!.id, folderName: arg.folderName)).notifier).refresh();
   }
 }

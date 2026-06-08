@@ -1,9 +1,4 @@
-//! Legacy and wire-format data types.
-//!
-//! New launcher code should prefer the facade types in [`crate::prelude`] and
-//! the normalized version model in [`crate::core::version`]. This module keeps
-//! compatibility structs for older APIs, Mojang/loader response shapes, runtime
-//! metadata, launcher profile parsing, and Minecraft news responses.
+
 
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
@@ -18,7 +13,6 @@ pub mod runtime_types;
 pub mod shared_types;
 pub mod vanilla_launcher_types;
 
-/// Legacy launch options shape retained for compatibility wrappers.
 #[derive(Debug, Default, PartialEq, Clone)]
 pub struct MinecraftOptions {
     pub username: Option<String>,
@@ -46,7 +40,6 @@ pub struct MinecraftOptions {
     pub quick_play_realms: Option<String>,
 }
 
-/// Legacy callback table used by compatibility installation APIs.
 #[derive(Clone, Copy, Default)]
 pub struct CallbackDict {
     pub set_status: Option<fn(String)>,
@@ -54,14 +47,12 @@ pub struct CallbackDict {
     pub set_max: Option<fn(i32)>,
 }
 
-/// Latest release and snapshot ids from Mojang's version manifest.
 #[derive(Debug)]
 pub struct LatestMinecraftVersions {
     pub release: String,
     pub snapshot: String,
 }
 
-/// One Minecraft version entry from Mojang's version manifest.
 #[derive(Debug, Clone)]
 pub struct MinecraftVersionInfo {
     pub id: String,
@@ -70,7 +61,6 @@ pub struct MinecraftVersionInfo {
     pub compliance_level: i32,
 }
 
-// fabric
 pub struct FabricMinecraftVersion {
     pub version: String,
     pub stable: bool,
@@ -84,7 +74,6 @@ pub struct FabricLoader {
     pub stable: bool,
 }
 
-// quilt
 pub struct QuiltMinecraftVersion {
     pub version: String,
     pub stable: bool,
@@ -97,7 +86,6 @@ pub struct QuiltLoader {
     pub version: String,
 }
 
-// minecraft news
 pub struct MinecraftNewsOptions {
     pub page_size: i32,
 }
@@ -147,8 +135,6 @@ pub struct Articles {
     pub article_count: i32,
 }
 
-// java_utils
-/// Metadata discovered for a local Java installation.
 #[derive(Debug)]
 pub struct JavaInformation {
     pub path: String,
@@ -160,7 +146,6 @@ pub struct JavaInformation {
     pub openjdk: bool,
 }
 
-// vanilla_launcher
 #[derive(Debug, Deserialize)]
 pub struct VanillaLauncherProfileResolution {
     pub height: i32,
@@ -183,7 +168,6 @@ pub struct VanillaLauncherProfile {
     pub custom_resolution: Option<VanillaLauncherProfileResolution>,
 }
 
-// mrpack
 pub struct MrpackInformation {
     pub name: String,
     pub summary: String,
@@ -198,7 +182,6 @@ pub struct MrpackInstallOptions {
     pub skip_dependencies_install: Option<bool>,
 }
 
-// runtime
 pub struct JvmRuntimeInformation {
     pub name: String,
     pub released: DateTime<Utc>,
@@ -209,7 +192,6 @@ pub struct VersionRuntimeInformation {
     pub java_major_version: i32,
 }
 
-// impl
 impl JavaInformation {
     pub fn new(
         path: &str,
@@ -232,7 +214,6 @@ impl JavaInformation {
     }
 }
 
-// impl
 impl MinecraftOptions {
     pub fn new(username: String, uuid: String, token: String) -> Self {
         Self {

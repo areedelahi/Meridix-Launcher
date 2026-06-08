@@ -4,7 +4,6 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 
-/// Sidebar navigation item definition.
 class SidebarItem {
   const SidebarItem({
     required this.icon,
@@ -19,8 +18,6 @@ class SidebarItem {
   final String? badge;
 }
 
-/// Animated collapsible sidebar navigation.
-/// Shows icons-only when collapsed; expands on hover or when pinned.
 class AppSidebar extends StatefulWidget {
   const AppSidebar({
     super.key,
@@ -75,12 +72,12 @@ class _AppSidebarState extends State<AppSidebar>
       if (isPinned && mounted) {
         setState(() {
           _pinned = true;
-          // Jump immediately to expanded state without animating on startup
+
           _controller.value = 1.0;
         });
       }
     } catch (_) {
-      // Ignore prefs error on boot
+
     }
   }
 
@@ -142,17 +139,15 @@ class _AppSidebarState extends State<AppSidebar>
         },
         child: Column(
           children: [
-            // ── Hamburger toggle ─────────────────────────────────────────
+
             _HamburgerButton(
               expanded: _expanded,
               pinned: _pinned,
               onTap: _togglePin,
             ),
 
-            // ── Header ────────────────────────────────────────────────────
             if (widget.header != null) widget.header!,
 
-            // ── Nav items ─────────────────────────────────────────────────
             Expanded(
               child: ListView.separated(
                 padding: const EdgeInsets.symmetric(
@@ -175,7 +170,6 @@ class _AppSidebarState extends State<AppSidebar>
               ),
             ),
 
-            // ── Footer ───────────────────────────────────────────────────
             if (widget.footer != null)
               Padding(
                 padding: const EdgeInsets.symmetric(
@@ -190,8 +184,6 @@ class _AppSidebarState extends State<AppSidebar>
     );
   }
 }
-
-// ── Hamburger button ──────────────────────────────────────────────────────────
 
 class _HamburgerButton extends StatefulWidget {
   const _HamburgerButton({
@@ -250,8 +242,6 @@ class _HamburgerButtonState extends State<_HamburgerButton> {
     );
   }
 }
-
-// ── Nav item ──────────────────────────────────────────────────────────────────
 
 class _SidebarNavItem extends StatefulWidget {
   const _SidebarNavItem({
@@ -336,7 +326,7 @@ class _SidebarNavItemState extends State<_SidebarNavItem>
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
             height: 44,
-            // Collapsed: fixed 44×44 square. Expanded: clips to sidebar width.
+
             width: widget.isExpanded ? double.maxFinite : 44,
             decoration: BoxDecoration(
               color: isActive ? colors.sidebarSelected : Colors.transparent,
@@ -344,11 +334,11 @@ class _SidebarNavItemState extends State<_SidebarNavItem>
             ),
             clipBehavior: Clip.hardEdge,
             child: widget.isExpanded
-                // ── Expanded layout ────────────────────────────────────
+
                 ? Stack(
                     alignment: Alignment.centerLeft,
                     children: [
-                      // Selection indicator bar
+
                       Positioned(
                         left: 0,
                         top: 8,
@@ -370,7 +360,7 @@ class _SidebarNavItemState extends State<_SidebarNavItem>
                       ),
                       OverflowBox(
                         minWidth: AppSpacing.sidebarExpandedWidth -
-                            24, // 200 - 12 - 12
+                            24, 
                         maxWidth: AppSpacing.sidebarExpandedWidth - 24,
                         alignment: Alignment.centerLeft,
                         child: Padding(
@@ -415,7 +405,7 @@ class _SidebarNavItemState extends State<_SidebarNavItem>
                       ),
                     ],
                   )
-                // ── Collapsed layout — perfectly centred icon ─────────
+
                 : Center(
                     child: Icon(widget.item.icon,
                         size: AppSpacing.iconMd, color: iconColor),

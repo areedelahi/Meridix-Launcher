@@ -2,8 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 
-/// Abstract contract for window management.
-/// UI layer calls this; concrete impl uses window_manager.
 abstract class WindowService {
   Future<void> initialize({Size minSize, String title});
   Future<void> show();
@@ -18,15 +16,11 @@ abstract class WindowService {
   Future<void> setSize(Size size);
   Future<void> center();
 
-  /// Whether the current platform needs a custom title bar.
-  /// True on all desktop platforms (we always use custom chrome).
   bool get needsCustomTitleBar;
 
-  /// Whether macOS-style traffic lights should be shown (left side).
   bool get isMacStyle;
 }
 
-/// Concrete implementation using the window_manager package.
 class DesktopWindowService implements WindowService {
   @override
   bool get needsCustomTitleBar => true;

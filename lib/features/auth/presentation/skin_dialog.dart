@@ -11,7 +11,6 @@ import '../../../core/widgets/glass_dialog.dart';
 import '../domain/user_account.dart';
 import 'auth_provider.dart';
 
-/// Dialog for changing a Minecraft account skin and cape.
 class SkinDialog extends ConsumerStatefulWidget {
   const SkinDialog({
     super.key,
@@ -29,7 +28,7 @@ class SkinDialog extends ConsumerStatefulWidget {
       title: 'Change Appearance',
       icon: Icons.checkroom_rounded,
       child: SkinDialog(account: account),
-      actions: const [], // actions handled inside widget
+      actions: const [], 
     );
   }
 
@@ -39,7 +38,7 @@ class SkinDialog extends ConsumerStatefulWidget {
 
 class _SkinDialogState extends ConsumerState<SkinDialog> {
   String? _selectedPath;
-  String _variant = 'classic'; // 'classic' or 'slim'
+  String _variant = 'classic'; 
   bool _uploading = false;
   String? _error;
   String? _selectedCapeId;
@@ -145,7 +144,7 @@ class _SkinDialogState extends ConsumerState<SkinDialog> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Description ──────────────────────────────────────────────────────
+
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -173,7 +172,6 @@ class _SkinDialogState extends ConsumerState<SkinDialog> {
         ),
         const SizedBox(height: AppSpacing.px16),
 
-        // ── File picker ───────────────────────────────────────────────────────
         Row(
           children: [
             AppButton(
@@ -203,7 +201,6 @@ class _SkinDialogState extends ConsumerState<SkinDialog> {
         ),
         const SizedBox(height: AppSpacing.px16),
 
-        // ── Skin preview ──────────────────────────────────────────────────────
         if (hasFile) ...[
           ClipRRect(
             borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
@@ -211,7 +208,7 @@ class _SkinDialogState extends ConsumerState<SkinDialog> {
               File(_selectedPath!),
               width: 96,
               height: 96,
-              filterQuality: FilterQuality.none, // pixel-art crisp rendering
+              filterQuality: FilterQuality.none, 
               errorBuilder: (_, __, ___) => Container(
                 width: 96,
                 height: 96,
@@ -227,7 +224,6 @@ class _SkinDialogState extends ConsumerState<SkinDialog> {
           const SizedBox(height: AppSpacing.px16),
         ],
 
-        // ── Model toggle ──────────────────────────────────────────────────────
         Text(
           'Skin Model',
           style: AppTypography.labelLarge.copyWith(color: colors.textMed),
@@ -256,7 +252,6 @@ class _SkinDialogState extends ConsumerState<SkinDialog> {
         Divider(color: colors.divider),
         const SizedBox(height: AppSpacing.px16),
 
-        // ── Cape selection ────────────────────────────────────────────────────
         Text(
           'Active Cape',
           style: AppTypography.labelLarge.copyWith(color: colors.textMed),
@@ -298,7 +293,6 @@ class _SkinDialogState extends ConsumerState<SkinDialog> {
             ),
           ),
 
-        // ── Error message ─────────────────────────────────────────────────────
         if (_error != null) ...[
           const SizedBox(height: AppSpacing.px12),
           Text(
@@ -309,7 +303,6 @@ class _SkinDialogState extends ConsumerState<SkinDialog> {
 
         const SizedBox(height: AppSpacing.px20),
 
-        // ── Action buttons ────────────────────────────────────────────────────
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
@@ -333,7 +326,6 @@ class _SkinDialogState extends ConsumerState<SkinDialog> {
   }
 }
 
-/// Small selectable chip for model variant selection.
 class _ModelChip extends StatelessWidget {
   const _ModelChip({
     required this.label,

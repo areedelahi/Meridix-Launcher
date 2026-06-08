@@ -1,5 +1,4 @@
-/// This is copied from Cargokit (which is the official way to use it currently)
-/// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
+
 
 import 'dart:io';
 
@@ -153,7 +152,7 @@ class PrecompileBinaries {
       }
       _log.info('Uploading assets: ${assets.map((e) => e.name)}');
       for (final asset in assets) {
-        // This seems to be failing on CI so do it one by one
+
         int retryCount = 0;
         while (true) {
           try {

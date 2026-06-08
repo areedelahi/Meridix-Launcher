@@ -1,5 +1,4 @@
-/// This is copied from Cargokit (which is the official way to use it currently)
-/// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
+
 
 import 'dart:io';
 
@@ -16,10 +15,9 @@ import 'rustup.dart';
 import 'target.dart';
 
 class Artifact {
-  /// File system location of the artifact.
+
   final String path;
 
-  /// Actual file name that the artifact should have in destination folder.
   final String finalFileName;
 
   AritifactType get type {
@@ -69,7 +67,7 @@ class ArtifactProvider {
       builder.prepare(rustup);
       _log.info('Building ${environment.crateInfo.packageName} for $target');
       final targetDir = await builder.build();
-      // For local build accept both static and dynamic libraries.
+
       final artifactNames = <String>{
         ...getArtifactNames(
           target: target,
@@ -150,7 +148,6 @@ class ArtifactProvider {
         }
       }
 
-      // Only provide complete set of artifacts.
       if (artifactsForTarget.length == requiredArtifacts.length) {
         _log.fine('Found precompiled artifacts for $target');
         res[target] = artifactsForTarget;
@@ -167,7 +164,7 @@ class ArtifactProvider {
       try {
         return await get(url, headers: headers);
       } on SocketException catch (e) {
-        // Try to detect reset by peer error and retry.
+
         if (attempt++ < maxAttempts &&
             (e.osError?.errorCode == 54 || e.osError?.errorCode == 10054)) {
           _log.severe(

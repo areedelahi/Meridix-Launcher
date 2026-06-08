@@ -37,7 +37,7 @@ fn legacy_lwjgl2_version() -> VersionJson {
                 "client":{
                     "sha1":"client-sha1",
                     "size":1,
-                    "url":"https://example.test/client.jar"
+                    "url":"https:
                 }
             },
             "libraries":[

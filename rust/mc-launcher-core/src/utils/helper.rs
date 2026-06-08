@@ -43,7 +43,6 @@ pub fn check_path_inside_minecraft_directory(
     Ok(())
 }
 
-
 fn parse_single_rule(rule: &ClientJsonRule, options: &MinecraftOptions) -> bool {
     let mut return_value = false;
 
@@ -189,7 +188,6 @@ pub fn get_jar_mainclass(path: impl AsRef<Path>) -> Result<String, Box<dyn std::
     let mut archive = ZipArchive::new(file)?;
     let mut manifest = String::new();
 
-    // Read the MANIFEST.MF file from the JAR
     for i in 0..archive.len() {
         let mut entry = archive.by_index(i)?;
         if entry.name().eq_ignore_ascii_case("META-INF/MANIFEST.MF") {
@@ -198,7 +196,6 @@ pub fn get_jar_mainclass(path: impl AsRef<Path>) -> Result<String, Box<dyn std::
         }
     }
 
-    // Parse the MANIFEST.MF content to find the Main-Class
     let main_class = manifest
         .lines()
         .find(|line| line.starts_with("Main-Class:"))
@@ -247,7 +244,6 @@ static REQUESTS_RESPONSE_CACHE: Lazy<Mutex<HashMap<String, RequestsResponseCache
     Lazy::new(|| Mutex::new(HashMap::new()));
 static USER_AGENT_CACHE: Lazy<Mutex<Option<String>>> = Lazy::new(|| Mutex::new(None));
 
-// return the user agent of mc-launcher-core
 pub fn get_user_agent() -> String {
     let mut cache = USER_AGENT_CACHE.lock().unwrap();
     if let Some(ref user_agent) = *cache {
@@ -406,12 +402,7 @@ mod tests {
 
     #[test]
     fn debug_parse_maven_metadata() {
-        // let url =
-        //     "https://files.minecraftforge.net/maven/net/minecraftforge/forge/maven-metadata.xml";
-        // match parse_maven_metadata(url) {
-        //     Ok(res) => println!("{:?}", res),
-        //     Err(e) => println!("{:#?}", e),
-        // }
+
     }
 
     #[test]
@@ -421,12 +412,7 @@ mod tests {
 
     #[test]
     fn debug_get_jar_mainclass() {
-        // match get_jar_mainclass(
-        //     r"H:\mc\mc-launcher-core\test\.minecraft\versions\DarkRPG FORGE - RPG, Quest, Magic, Dark Souls\DarkRPG FORGE - RPG, Quest, Magic, Dark Souls.jar",
-        // ) {
-        //     Ok(s) => println!("jar mainclass: {}", s),
-        //     Err(e) => println!("{}", e.to_string()),
-        // }
+
     }
 
     #[test]

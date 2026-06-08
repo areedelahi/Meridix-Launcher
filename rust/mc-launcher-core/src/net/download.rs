@@ -1,4 +1,4 @@
-//! Download plans and execution.
+
 
 use std::{
     fs::{self, File},
@@ -12,42 +12,38 @@ use crate::{
     LauncherError, Result,
 };
 
-/// Supported checksum validation methods for downloaded files.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Checksum {
-    /// SHA-1 checksum.
+
     Sha1(String),
-    /// SHA-256 checksum.
+
     Sha256(String),
 }
 
-/// One file download.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct DownloadTask {
-    /// Source URL.
+
     pub url: String,
-    /// Destination path.
+
     pub destination: PathBuf,
-    /// Optional checksum used for skip and validation decisions.
+
     pub checksum: Option<Checksum>,
-    /// Human-readable task label reported in progress events.
+
     pub label: String,
-    /// Known file size in bytes for accurate progress tracking.
+
     pub size: Option<u64>,
-    /// Whether this file requires LZMA decompression upon download.
+
     pub lzma_compressed: bool,
-    /// Whether this file must be marked as executable on UNIX systems.
+
     pub executable: bool,
 }
 
-/// A batch of download tasks.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct DownloadPlan {
-    /// Tasks to execute in order.
+
     pub tasks: Vec<DownloadTask>,
 }
 
-/// Returns whether an existing destination file can be reused.
 pub fn should_skip_existing(task: &DownloadTask) -> Result<bool> {
     if !task.destination.is_file() {
         return Ok(false);
@@ -115,7 +111,7 @@ pub fn execute_plan_sequential(plan: &DownloadPlan, reporter: &mut dyn ProgressR
         let response = client.get(&task.url).send()?.error_for_status()?;
         let total = response.content_length();
         let mut file = std::io::BufWriter::new(File::create(&task.destination)?);
-        
+
         let mut received = 0;
         let mut wrapped = ProgressWrapper {
             inner: response,
@@ -176,7 +172,7 @@ pub fn execute_plan(plan: &DownloadPlan, reporter: &mut dyn ProgressReporter) ->
 
     let num_threads = std::cmp::min(8, plan.tasks.len());
     let (tx, rx) = mpsc::channel();
-    
+
     let tasks: Vec<DownloadTask> = plan.tasks.clone();
     let task_queue = Arc::new(Mutex::new(tasks.into_iter()));
     let mut handles = Vec::new();
@@ -184,7 +180,7 @@ pub fn execute_plan(plan: &DownloadPlan, reporter: &mut dyn ProgressReporter) ->
     for _ in 0..num_threads {
         let task_queue = Arc::clone(&task_queue);
         let tx = tx.clone();
-        
+
         handles.push(thread::spawn(move || {
             let client = match super::http::client() {
                 Ok(c) => c,
@@ -193,14 +189,14 @@ pub fn execute_plan(plan: &DownloadPlan, reporter: &mut dyn ProgressReporter) ->
                     return;
                 }
             };
-            
+
             loop {
                 let task_opt = {
                     let mut q = task_queue.lock().unwrap();
                     q.next()
                 };
                 let Some(task) = task_opt else { break; };
-                
+
                 match should_skip_existing(&task) {
                     Ok(true) => {
                         let _ = tx.send(Ok(WorkerMessage::TaskSkipped(task.size.unwrap_or(0))));
@@ -221,19 +217,19 @@ pub fn execute_plan(plan: &DownloadPlan, reporter: &mut dyn ProgressReporter) ->
                         return;
                     }
                 }
-                
+
                 let _ = tx.send(Ok(WorkerMessage::Event(ProgressEvent::TaskStarted {
                     label: task.label.clone(),
                     path: task.destination.clone(),
                 })));
-                
+
                 if let Some(parent) = task.destination.parent() {
                     if let Err(e) = fs::create_dir_all(parent) {
                         let _ = tx.send(Err(e.into()));
                         return;
                     }
                 }
-                
+
                 let response_res = client.get(&task.url).send().and_then(|r| r.error_for_status());
                 let response = match response_res {
                     Ok(r) => r,
@@ -242,7 +238,7 @@ pub fn execute_plan(plan: &DownloadPlan, reporter: &mut dyn ProgressReporter) ->
                         return;
                     }
                 };
-                
+
                 let total = response.content_length();
                 let mut file = match File::create(&task.destination) {
                     Ok(f) => std::io::BufWriter::new(f),
@@ -251,7 +247,7 @@ pub fn execute_plan(plan: &DownloadPlan, reporter: &mut dyn ProgressReporter) ->
                         return;
                     }
                 };
-                
+
                 let mut received = 0;
                 let wrapped = ProgressWrapper {
                     inner: response,
@@ -265,7 +261,7 @@ pub fn execute_plan(plan: &DownloadPlan, reporter: &mut dyn ProgressReporter) ->
                         })));
                     }
                 };
-                
+
                 if task.lzma_compressed {
                     if let Err(e) = lzma_rs::lzma_decompress(&mut std::io::BufReader::new(wrapped), &mut file) {
                         let _ = tx.send(Err(std::io::Error::new(std::io::ErrorKind::InvalidData, e).into()));
@@ -278,14 +274,14 @@ pub fn execute_plan(plan: &DownloadPlan, reporter: &mut dyn ProgressReporter) ->
                         return;
                     }
                 }
-                
+
                 if task.executable {
                     #[cfg(unix)]
                     {
                         let _ = std::process::Command::new("chmod").arg("+x").arg(&task.destination).status();
                     }
                 }
-                
+
                 if let Some(Checksum::Sha1(expected)) = &task.checksum {
                     match sha1_file(&task.destination) {
                         Ok(actual) => {
@@ -304,16 +300,16 @@ pub fn execute_plan(plan: &DownloadPlan, reporter: &mut dyn ProgressReporter) ->
                         }
                     }
                 }
-                
+
                 let _ = tx.send(Ok(WorkerMessage::Event(ProgressEvent::TaskFinished {
                     label: task.label.clone(),
                 })));
             }
         }));
     }
-    
+
     drop(tx);
-    
+
     let total_plan_bytes: u64 = plan.tasks.iter().map(|t| t.size.unwrap_or(0)).sum();
     let mut completed_plan_bytes: u64 = 0;
 
@@ -337,10 +333,10 @@ pub fn execute_plan(plan: &DownloadPlan, reporter: &mut dyn ProgressReporter) ->
             Err(e) => return Err(e),
         }
     }
-    
+
     for handle in handles {
         let _ = handle.join();
     }
-    
+
     Ok(())
 }

@@ -3,11 +3,8 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 
-/// Variant for [AppButton].
 enum AppButtonVariant { primary, ghost, danger, outline }
 
-/// High-fidelity animated button with hover, press, and focus states.
-/// Uses spring physics for the scale animation.
 class AppButton extends StatefulWidget {
   const AppButton({
     super.key,

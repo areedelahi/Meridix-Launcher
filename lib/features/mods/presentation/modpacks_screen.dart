@@ -22,11 +22,11 @@ class ModpacksScreen extends ConsumerStatefulWidget {
 
 class _ModpacksScreenState extends ConsumerState<ModpacksScreen> {
   String _search = '';
-  String _currentView = 'Modrinth'; // Modrinth, CurseForge
+  String _currentView = 'Modrinth'; 
 
   Future<void> _installModpack(RemoteMod pack, RemoteSearchQuery searchQuery) async {
     final colors = context.colors;
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -123,7 +123,7 @@ class _ModpacksScreenState extends ConsumerState<ModpacksScreen> {
 
     final queryArgs = (
       source: _currentView.toLowerCase(),
-      query: _search.isEmpty ? 'optimization' : _search, // default query if empty
+      query: _search.isEmpty ? 'optimization' : _search, 
       folderName: 'modpacks',
       instance: null,
       showAllVersions: false,
@@ -133,7 +133,7 @@ class _ModpacksScreenState extends ConsumerState<ModpacksScreen> {
 
     return Column(
       children: [
-        // Toolbar
+
         Container(
           height: 60,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.px12, vertical: AppSpacing.px8),
@@ -173,7 +173,6 @@ class _ModpacksScreenState extends ConsumerState<ModpacksScreen> {
           ),
         ),
 
-        // Content
         Expanded(
           child: _currentView == 'CurseForge'
               ? Center(
@@ -224,7 +223,7 @@ class _ModpackRow extends StatelessWidget {
     return AppCard(
       child: Row(
         children: [
-          // Icon
+
           Container(
             width: 56,
             height: 56,
@@ -246,7 +245,6 @@ class _ModpackRow extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.px12),
 
-          // Info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -266,7 +264,6 @@ class _ModpackRow extends StatelessWidget {
             ),
           ),
 
-          // Actions
           AppButton(
             label: 'Install',
             icon: Icons.download_rounded,

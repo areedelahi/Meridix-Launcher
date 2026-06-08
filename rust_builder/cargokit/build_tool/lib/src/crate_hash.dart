@@ -1,5 +1,4 @@
-/// This is copied from Cargokit (which is the official way to use it currently)
-/// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
+
 
 import 'dart:convert';
 import 'dart:io';
@@ -11,12 +10,7 @@ import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as path;
 
 class CrateHash {
-  /// Computes a hash uniquely identifying crate content. This takes into account
-  /// content all all .rs files inside the src directory, as well as Cargo.toml,
-  /// Cargo.lock, build.rs and cargokit.yaml.
-  ///
-  /// If [tempStorage] is provided, computed hash is stored in a file in that directory
-  /// and reused on subsequent calls if the crate content hasn't changed.
+
   static String compute(String manifestDir, {String? tempStorage}) {
     return CrateHash._(
       manifestDir: manifestDir,
@@ -48,9 +42,6 @@ class CrateHash {
     }
   }
 
-  /// Computes a quick hash based on files stat (without reading contents). This
-  /// is used to cache the real hash, which is slower to compute since it involves
-  /// reading every single file.
   String _computeQuickHash(List<File> files) {
     final output = AccumulatorSink<Digest>();
     final input = sha256.startChunkedConversion(output);
@@ -74,8 +65,7 @@ class CrateHash {
     final input = sha256.startChunkedConversion(output);
 
     void addTextFile(File file) {
-      // text Files are hashed by lines in case we're dealing with github checkout
-      // that auto-converts line endings.
+
       final splitter = LineSplitter();
       if (file.existsSync()) {
         final data = file.readAsStringSync();
@@ -93,7 +83,6 @@ class CrateHash {
     input.close();
     final res = output.events.single;
 
-    // Truncate to 128bits.
     final hash = res.bytes.sublist(0, 16);
     return hex.encode(hash);
   }

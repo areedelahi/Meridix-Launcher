@@ -19,7 +19,7 @@ class RemoteMod {
   final String? iconUrl;
   final int downloadCount;
   final List<String> categories;
-  final String source; // 'modrinth' or 'curseforge'
+  final String source; 
 }
 
 class RemoteModVersion {
@@ -27,7 +27,7 @@ class RemoteModVersion {
     required this.id,
     required this.versionNumber,
     required this.name,
-    required this.releaseType, // 'release', 'beta', 'alpha'
+    required this.releaseType, 
     required this.datePublished,
     required this.downloadUrl,
     required this.filename,

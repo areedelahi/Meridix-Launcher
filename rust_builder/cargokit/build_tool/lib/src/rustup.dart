@@ -1,5 +1,4 @@
-/// This is copied from Cargokit (which is the official way to use it currently)
-/// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
+
 
 import 'dart:io';
 
@@ -70,15 +69,13 @@ class Rustup {
 
   static List<_Toolchain> _getInstalledToolchains() {
     String extractToolchainName(String line) {
-      // ignore (default) after toolchain name
+
       final parts = line.split(' ');
       return parts[0];
     }
 
     final res = runCommand("rustup", ['toolchain', 'list']);
 
-    // To list all non-custom toolchains, we need to filter out lines that
-    // don't start with "stable", "beta", or "nightly".
     Pattern nonCustom = RegExp(r"^(stable|beta|nightly)");
     final lines = res.stdout
         .toString()
@@ -119,7 +116,7 @@ class Rustup {
     if (_didInstallRustSrcForNightly) {
       return;
     }
-    // Useful for -Z build-std
+
     runCommand(
       "rustup",
       ['component', 'add', 'rust-src', '--toolchain', 'nightly'],

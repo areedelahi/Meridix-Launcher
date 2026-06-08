@@ -1,4 +1,4 @@
-//! Native library extraction helpers.
+
 
 use std::{
     collections::HashSet,
@@ -20,7 +20,6 @@ use crate::{
     Result,
 };
 
-/// Returns the local native extraction directory for a version.
 pub fn natives_directory(minecraft_dir: impl AsRef<Path>, version_id: &str) -> PathBuf {
     minecraft_dir
         .as_ref()
@@ -29,12 +28,6 @@ pub fn natives_directory(minecraft_dir: impl AsRef<Path>, version_id: &str) -> P
         .join("natives")
 }
 
-/// Extracts native libraries for the current platform.
-///
-/// # Errors
-///
-/// Returns [`crate::LauncherError`] if a native jar cannot be read, a Maven
-/// coordinate is invalid, or an archive entry would escape the destination.
 pub fn extract_natives(
     libraries: &[Library],
     minecraft_dir: impl AsRef<Path>,
@@ -43,12 +36,6 @@ pub fn extract_natives(
     extract_natives_for_platform(libraries, minecraft_dir, version_id, Platform::current())
 }
 
-/// Extracts native libraries for an explicit platform.
-///
-/// # Errors
-///
-/// Returns [`crate::LauncherError`] if a native jar cannot be read, a Maven
-/// coordinate is invalid, or an archive entry would escape the destination.
 pub fn extract_natives_for_platform(
     libraries: &[Library],
     minecraft_dir: impl AsRef<Path>,

@@ -31,7 +31,7 @@ Future<void> _openFolder(String path) async {
   if (await canLaunchUrl(uri)) {
     await launchUrl(uri);
   } else {
-    // Fallback if Uri.directory fails
+
     final fallbackUri = Uri.parse('file://$path');
     if (await canLaunchUrl(fallbackUri)) {
       await launchUrl(fallbackUri);
@@ -69,7 +69,7 @@ class _InstanceDetailScreenState extends ConsumerState<InstanceDetailScreen> {
 
     return Row(
       children: [
-        // ── Local Sidebar ──────────────────────────────────────────
+
         Container(
           width: 200,
           decoration: BoxDecoration(
@@ -79,7 +79,7 @@ class _InstanceDetailScreenState extends ConsumerState<InstanceDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Header & Back Button
+
               Padding(
                 padding: const EdgeInsets.all(AppSpacing.px16),
                 child: Row(
@@ -106,7 +106,6 @@ class _InstanceDetailScreenState extends ConsumerState<InstanceDetailScreen> {
               ),
               const Divider(height: 1),
 
-              // Tabs
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.symmetric(
@@ -123,7 +122,6 @@ class _InstanceDetailScreenState extends ConsumerState<InstanceDetailScreen> {
                 ),
               ),
 
-              // Play Button
               Padding(
                 padding: const EdgeInsets.all(AppSpacing.px16),
                 child: AppButton(
@@ -157,9 +155,7 @@ class _InstanceDetailScreenState extends ConsumerState<InstanceDetailScreen> {
                                   .read(downloadsProvider.notifier)
                                   .startDownload(instance);
                             } catch (downloadError) {
-                              // If the network is down or API times out, we still attempt to launch!
-                              // If the instance hasn't been installed yet, the Rust launch() engine 
-                              // will naturally throw a "Profile not found" error anyway.
+
                               print("Update check failed (offline mode?): $downloadError");
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -175,7 +171,6 @@ class _InstanceDetailScreenState extends ConsumerState<InstanceDetailScreen> {
                               orElse: () => instance,
                             );
 
-                            // Check if the user changed the version while the download was running
                             if (updatedInstance.minecraftVersion !=
                                     instance.minecraftVersion ||
                                 updatedInstance.loader != instance.loader ||
@@ -206,7 +201,6 @@ class _InstanceDetailScreenState extends ConsumerState<InstanceDetailScreen> {
           ),
         ),
 
-        // ── Main Content Area ──────────────────────────────────────
         Expanded(
           child: _buildContent(context),
         ),
@@ -334,8 +328,6 @@ class _LocalSidebarItem extends StatelessWidget {
   }
 }
 
-// ── Mods Tab (Refactored from old ModsScreen) ────────────────────────────────
-
 class _ModsTab extends ConsumerStatefulWidget {
   const _ModsTab({required this.instanceId});
   final String instanceId;
@@ -346,7 +338,7 @@ class _ModsTab extends ConsumerStatefulWidget {
 
 class _ModsTabState extends ConsumerState<_ModsTab> {
   String _search = '';
-  String _currentView = 'Installed'; // Installed, Modrinth, CurseForge
+  String _currentView = 'Installed'; 
 
   final _stubs = [
     const _StubMod(
@@ -379,7 +371,7 @@ class _ModsTabState extends ConsumerState<_ModsTab> {
 
     return Column(
       children: [
-        // Toolbar
+
         Container(
           height: 60,
           padding: const EdgeInsets.symmetric(
@@ -421,7 +413,6 @@ class _ModsTabState extends ConsumerState<_ModsTab> {
           ),
         ),
 
-        // Grid
         Expanded(
           child: GridView.builder(
             padding: const EdgeInsets.all(AppSpacing.px16),
@@ -538,8 +529,6 @@ class _ModCard extends StatelessWidget {
   }
 }
 
-// ── Shared Content Browser Widgets ──────────────────────────────────────────
-
 class _SegmentedTabPicker extends StatelessWidget {
   const _SegmentedTabPicker(
       {required this.tabs, required this.selected, required this.onChanged});
@@ -593,7 +582,6 @@ class _StubMod {
   final Color color;
 }
 
-// ── Overview Tab ─────────────────────────────────────────────────────────────
 class _OverviewTab extends ConsumerWidget {
   const _OverviewTab({required this.instanceId});
   final String instanceId;
@@ -637,7 +625,6 @@ class _OverviewTab extends ConsumerWidget {
                   .copyWith(color: colors.textHigh)),
           const SizedBox(height: AppSpacing.px24),
 
-          // Identity Card
           AppCard(
             child: Row(
               children: [
@@ -713,7 +700,6 @@ class _OverviewTab extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.px24),
 
-          // Stats Grid
           Row(
             children: [
               Expanded(
@@ -757,7 +743,6 @@ class _OverviewTab extends ConsumerWidget {
   }
 }
 
-// ── Logs Tab ────────────────────────────────────────────────────────────────
 class _LogsTab extends ConsumerStatefulWidget {
   const _LogsTab({required this.instanceId});
   final String instanceId;
@@ -856,7 +841,6 @@ class _LogsTabState extends ConsumerState<_LogsTab> {
   }
 }
 
-// ── Settings Tab ────────────────────────────────────────────────────────────
 class _SettingsTab extends ConsumerStatefulWidget {
   const _SettingsTab({required this.instanceId});
   final String instanceId;
@@ -871,7 +855,6 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
   final TextEditingController _jvmArgsController = TextEditingController();
   final TextEditingController _javaPathController = TextEditingController();
 
-  // Version & Loader state
   String? _version;
   bool _showSnapshots = false;
   String _loader = 'Vanilla';
@@ -945,7 +928,7 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
   void _loadFromInstance() {
     final list = ref.read(instancesProvider).value ?? [];
     if (list.isEmpty)
-      return; // Wait for async load to populate it via didUpdateWidget
+      return; 
     try {
       final inst = list.firstWhere((e) => e.id == widget.instanceId);
 
@@ -1024,7 +1007,7 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
   @override
   void didUpdateWidget(_SettingsTab oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // If instance data changes (e.g. async load finished), update local state
+
     final list = ref.read(instancesProvider).value ?? [];
     if (list.isEmpty) return;
 
@@ -1142,7 +1125,6 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
       return const SizedBox();
     }
 
-    // When following global settings, we show a greyed out/disabled state
     final isEnabled = !_followGlobal;
     final opacity = isEnabled ? 1.0 : 0.5;
 
@@ -1154,7 +1136,7 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
                 AppTypography.headlineMedium.copyWith(color: colors.textHigh)),
         const SizedBox(height: AppSpacing.px24),
         if (inst.sourceModpackId == null) ...[
-          // Version & Loader Card
+
           AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1169,7 +1151,6 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
                         .copyWith(color: colors.textLow)),
                 const SizedBox(height: AppSpacing.px16),
 
-                // Minecraft Version
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -1278,7 +1259,6 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
                 ),
                 const SizedBox(height: AppSpacing.px20),
 
-                // Mod Loader
                 Text('Mod Loader',
                     style: AppTypography.labelLarge
                         .copyWith(color: colors.textMed)),
@@ -1363,8 +1343,6 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
                           data: (versions) {
                             var filteredVersions = versions.toList();
 
-                            // Forge and NeoForge APIs return versions oldest-first, so we reverse them.
-                            // Fabric and Quilt return newest-first.
                             if (['Forge', 'NeoForge'].contains(_loader)) {
                               filteredVersions =
                                   filteredVersions.reversed.toList();
@@ -1388,7 +1366,7 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
                                       ? '$minor.'
                                       : '$minor.$patch.';
                                 } else {
-                                  // New Mojang versioning (e.g. 26.1.2)
+
                                   prefix = '$_version.';
                                 }
 
@@ -1464,7 +1442,6 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
           const SizedBox(height: AppSpacing.px24),
         ],
 
-        // Follow Global Settings Toggle
         AppCard(
           child: Row(
             children: [
@@ -1502,7 +1479,7 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Memory Allocation
+
                 AppCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1568,7 +1545,6 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
                 ),
                 const SizedBox(height: AppSpacing.px16),
 
-                // JVM Arguments
                 AppCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1600,7 +1576,6 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
                 ),
                 const SizedBox(height: AppSpacing.px16),
 
-                // Java Path
                 AppCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1679,7 +1654,6 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
           const SizedBox(height: AppSpacing.px32),
         ],
 
-        // Danger Zone
         AppCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1713,7 +1687,6 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
   }
 }
 
-// ── Modpack Updates Section ──────────────────────────────────────────────────
 class _ModpackUpdatesSection extends ConsumerStatefulWidget {
   const _ModpackUpdatesSection({required this.instance});
   final Instance instance;
@@ -1748,8 +1721,6 @@ class _ModpackUpdatesSectionState
       if (!mounted) return;
       setState(() => _isChecking = false);
 
-      // Filter versions compatible with the current loader (or all loaders if desired)
-      // Usually updates stay within the same loader.
       final compatibleVersions = versions.where((v) {
         if (widget.instance.loader.name != 'vanilla') {
           return v.loaders.contains(widget.instance.loader.name);

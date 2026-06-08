@@ -20,11 +20,13 @@ pub fn launch_instance(
     account_name: String,
     account_uuid: String,
     account_token: String,
+    // Stream events back to Flutter (process start/exit)
     sink: crate::frb_generated::StreamSink<LaunchEvent>,
 ) -> anyhow::Result<()> {
     let launcher = Launcher::new(PathBuf::from(&minecraft_dir));
     let version = launcher.load_version(&version_id)?;
 
+    // Split auth logic: offline vs Microsoft live auth
     let account = if is_offline {
         Account::Offline {
             username: account_name,
@@ -56,7 +58,6 @@ pub fn launch_instance(
 
     let mut command = launcher.build_launch_command_from_version(&version, options)?;
 
-    // Add RAM arguments if specified
     if let Some(ram) = ram_mb {
         let xmx = format!("-Xmx{}M", ram);
         let xms = format!("-Xms{}M", ram);
@@ -64,9 +65,8 @@ pub fn launch_instance(
         command.args.insert(0, xms);
     }
 
-    // Add JVM arguments if specified
     if let Some(args_str) = jvm_args {
-        // We reverse them so that when we insert(0) they end up in original order.
+
         let parsed_args: Vec<&str> = args_str.split_whitespace().collect();
         for arg in parsed_args.into_iter().rev() {
             command.args.insert(0, arg.to_string());
@@ -75,6 +75,7 @@ pub fn launch_instance(
 
     #[cfg(target_os = "macos")]
     {
+        // Remove quarantine attribute so JVM can execute
         let _ = Command::new("xattr")
             .arg("-r")
             .arg("-d")

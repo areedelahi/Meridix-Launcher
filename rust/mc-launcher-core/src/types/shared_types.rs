@@ -57,7 +57,7 @@ pub struct ClientJsonLibraryDownloadsArtifact {
 #[derive(Debug, Deserialize, Clone)]
 pub struct ClientJsonLibraryDownloads {
     pub artifact: Option<ClientJsonLibraryDownloadsArtifact>,
-    /// keys: {"javadoc", "natives-linux", "natives-macos", "natives-windows", "sources"}
+
     pub classifiers: Option<HashMap<String, ClientJsonLibraryDownloadsArtifact>>,
 }
 
@@ -65,10 +65,10 @@ pub struct ClientJsonLibraryDownloads {
 pub struct ClientJsonLibrary {
     pub name: Option<String>,
     pub downloads: Option<ClientJsonLibraryDownloads>,
-    /// keys: {"exclude"}
+
     pub extract: Option<HashMap<String, Vec<String>>>,
     pub rules: Option<Vec<ClientJsonRule>>,
-    /// keys: {"linux", "osx", "windows"}
+
     pub natives: Option<HashMap<String, String>>,
     pub url: Option<String>,
 }
@@ -124,7 +124,6 @@ pub struct ClientJson {
     pub compliance_level: Option<i32>,
 }
 
-// need same as json
 #[derive(Debug, Deserialize)]
 pub struct VersionListManifestJsonVersion {
     pub id: String,
@@ -144,7 +143,6 @@ pub struct VersionListManifestJson {
     pub versions: Vec<VersionListManifestJsonVersion>,
 }
 
-// impl
 impl ClientJson {
     pub fn merge(&mut self, other: &ClientJson) {
         self.id = other.id.clone();

@@ -1,4 +1,4 @@
-/// Minecraft account entity — persisted after successful auth.
+
 class UserAccount {
   const UserAccount({
     required this.uuid,
@@ -13,27 +13,20 @@ class UserAccount {
     this.activeCapeId,
   });
 
-  /// Minecraft UUID (hyphenated).
   final String uuid;
 
-  /// Minecraft / Xbox gamertag.
   final String username;
 
-  /// 'microsoft' or 'offline'.
   final String type;
 
-  /// Minecraft access token (JWT).
   final String accessToken;
 
-  /// MS refresh token (only for Microsoft accounts).
   final String refreshToken;
 
-  /// When the access token expires.
   final DateTime expiresAt;
 
   final bool isActive;
 
-  /// Active skin texture URL (Microsoft accounts only; null = use Crafatar CDN).
   final String? skinUrl;
 
   final List<MinecraftCape> capes;

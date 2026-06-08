@@ -25,7 +25,7 @@ class ModrinthApiProvider {
     bool showAllVersions = false,
   }) async {
     final projectType = _mapProjectType(folderName);
-    
+
     final facets = <List<String>>[
       ['project_type:$projectType']
     ];
@@ -67,7 +67,7 @@ class ModrinthApiProvider {
     bool showAllVersions = false,
   }) async {
     final Map<String, dynamic> queryParams = {};
-    
+
     if (!showAllVersions) {
       if (gameVersion != null && gameVersion.isNotEmpty) {
         queryParams['game_versions'] = jsonEncode([gameVersion]);
@@ -78,7 +78,7 @@ class ModrinthApiProvider {
     }
 
     final response = await _dio.get('/project/$projectId/version', queryParameters: queryParams);
-    
+
     final versions = response.data as List;
     return versions.map((v) {
       final files = v['files'] as List;
@@ -88,7 +88,7 @@ class ModrinthApiProvider {
         id: v['id'],
         versionNumber: v['version_number'],
         name: v['name'],
-        releaseType: v['version_type'], // release, beta, alpha
+        releaseType: v['version_type'], 
         datePublished: DateTime.parse(v['date_published']),
         downloadUrl: primaryFile['url'],
         filename: primaryFile['filename'],

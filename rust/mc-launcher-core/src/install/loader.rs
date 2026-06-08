@@ -1,4 +1,4 @@
-//! Loader profile writing and installer process helpers.
+
 
 use std::{
     fs,
@@ -8,7 +8,6 @@ use std::{
 
 use crate::{core::version::VersionJson, loader::LoaderKind, LauncherError, Result};
 
-/// Returns the standard local path for a loader profile JSON.
 pub fn loader_profile_path(minecraft_dir: impl AsRef<Path>, version_id: &str) -> PathBuf {
     minecraft_dir
         .as_ref()
@@ -17,12 +16,6 @@ pub fn loader_profile_path(minecraft_dir: impl AsRef<Path>, version_id: &str) ->
         .join(format!("{version_id}.json"))
 }
 
-/// Writes a loader profile JSON to `<minecraft_dir>/versions/<id>/<id>.json`.
-///
-/// # Errors
-///
-/// Returns [`crate::LauncherError`] if the profile has no `id`, the directory
-/// cannot be created, or the profile cannot be serialized.
 pub fn write_loader_profile(
     minecraft_dir: impl AsRef<Path>,
     profile: &VersionJson,
@@ -42,20 +35,18 @@ pub fn write_loader_profile(
     Ok(path)
 }
 
-/// Process inputs for a Java-based loader installer.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InstallerInvocation {
-    /// Loader family being installed.
+
     pub loader: LoaderKind,
-    /// Java executable used to run the installer jar.
+
     pub java_executable: PathBuf,
-    /// Downloaded installer jar path.
+
     pub installer_path: PathBuf,
-    /// Minecraft directory passed to the installer.
+
     pub minecraft_dir: PathBuf,
 }
 
-/// Builds the argument list used to run a loader installer jar.
 pub fn installer_command_args(invocation: &InstallerInvocation) -> Vec<String> {
     vec![
         "-jar".to_string(),
@@ -65,15 +56,8 @@ pub fn installer_command_args(invocation: &InstallerInvocation) -> Vec<String> {
     ]
 }
 
-/// Runs a Java-based loader installer.
-///
-/// # Errors
-///
-/// Returns [`crate::LauncherError`] if the installer process cannot be started
-/// or exits with a non-zero status.
 pub fn run_loader_installer(invocation: &InstallerInvocation) -> Result<()> {
-    // Forge/NeoForge installers require launcher_profiles.json to exist in the minecraft_dir
-    // otherwise they refuse to run. Create a minimal dummy file if it doesn't exist.
+
     let profiles_path = invocation.minecraft_dir.join("launcher_profiles.json");
     if !profiles_path.exists() {
         if let Some(parent) = profiles_path.parent() {

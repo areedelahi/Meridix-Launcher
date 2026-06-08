@@ -14,10 +14,6 @@ import '../features/downloads/domain/providers/downloads_provider.dart';
 import '../features/auth/presentation/auth_provider.dart';
 import '../features/instances/domain/providers/running_instances_provider.dart';
 
-// Import for settings and auth once wired up in later stages
-// import '../features/auth/presentation/auth_provider.dart';
-// import '../features/settings/presentation/settings_provider.dart';
-
 class LaunchBar extends ConsumerStatefulWidget {
   const LaunchBar({super.key});
 
@@ -55,31 +51,25 @@ class _LaunchBarState extends ConsumerState<LaunchBar>
     if (_isLaunching) return;
     setState(() => _isLaunching = true);
     try {
-      // 1. Trigger the download/verify pipeline
+
       final newProfileId = await ref.read(downloadsProvider.notifier).startDownload(instance);
 
-      // Fetch the potentially updated instance (which now has profileId set)
       final instances = ref.read(instancesProvider).value ?? [];
       final updatedInstance = instances.firstWhere(
         (i) => i.id == instance.id,
         orElse: () => instance,
       );
 
-      // Check if the user changed the version while the download was running
       if (updatedInstance.minecraftVersion != instance.minecraftVersion || 
           updatedInstance.loader != instance.loader || 
           updatedInstance.loaderVersion != instance.loaderVersion) {
         throw Exception('Version configuration was changed during download. Please click Play again to download the new version.');
       }
 
-      // Update the instance with the new profileId returned from the installer to avoid a race condition
-      // where instancesProvider hasn't finished saving to disk yet.
       final launchInstance = updatedInstance.copyWith(
         profileId: newProfileId ?? updatedInstance.profileId
       );
 
-      // If the profile ID was missing or changed, it means we just performed a fresh install or an update.
-      // In this case, we stop here and let the user explicitly click Play again to launch, matching the modpack UX.
       if (instance.profileId != newProfileId) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -89,7 +79,6 @@ class _LaunchBarState extends ConsumerState<LaunchBar>
         return;
       }
 
-      // 2. Launch the game
       await ref.read(launchServiceProvider).launch(launchInstance);
     } catch (e) {
       if (mounted) {
@@ -117,25 +106,22 @@ class _LaunchBarState extends ConsumerState<LaunchBar>
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    
+
     final selectedInstance = ref.watch(selectedInstanceProvider);
     final downloads = ref.watch(downloadsProvider);
-    
-    // Watch auth provider to ensure it initializes its async load from disk
-    // immediately on startup, rather than when the user first clicks Play.
+
     ref.watch(authProvider);
-    
-    // Find if the selected instance has a download/launch task running
+
     final taskInfo = selectedInstance != null
         ? downloads.where((t) => t.instanceId == selectedInstance.id).firstOrNull
         : null;
-        
+
     final runningInstances = ref.watch(runningInstancesProvider);
     final isRunning = selectedInstance != null && runningInstances.containsKey(selectedInstance.id);
 
     final isDownloading = taskInfo != null;
     final isBusy = isDownloading || isRunning;
-    
+
     final progress = taskInfo?.progress ?? 0.0;
     final statusText = isRunning ? 'Game is running' : (taskInfo?.subtitle ?? '');
 
@@ -148,7 +134,7 @@ class _LaunchBarState extends ConsumerState<LaunchBar>
       ),
       child: Row(
         children: [
-          // ── Instance thumb + info ────────────────────────────────
+
           _InstanceThumb(instance: selectedInstance),
           const SizedBox(width: AppSpacing.px12),
           Expanded(
@@ -156,7 +142,7 @@ class _LaunchBarState extends ConsumerState<LaunchBar>
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Instance name
+
                 Text(
                   selectedInstance?.name ?? 'No instance selected',
                   style: AppTypography.titleSmall.copyWith(
@@ -166,7 +152,7 @@ class _LaunchBarState extends ConsumerState<LaunchBar>
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
-                // Version badges
+
                 if (selectedInstance != null)
                   Row(
                     children: [
@@ -179,7 +165,7 @@ class _LaunchBarState extends ConsumerState<LaunchBar>
                       ]
                     ],
                   ),
-                // Progress bar (visible only during download)
+
                 if (isDownloading) ...[
                   const SizedBox(height: AppSpacing.px6),
                   AppProgressBar(
@@ -218,7 +204,6 @@ class _LaunchBarState extends ConsumerState<LaunchBar>
           ),
           const SizedBox(width: AppSpacing.px16),
 
-          // ── Kill button (only when running) ─────────────────────
           if (isRunning)
             Padding(
               padding: const EdgeInsets.only(right: AppSpacing.px8),
@@ -235,7 +220,6 @@ class _LaunchBarState extends ConsumerState<LaunchBar>
               ),
             ),
 
-          // ── PLAY button ──────────────────────────────────────────
           AnimatedBuilder(
             animation: _pulseAnim,
             builder: (context, child) {
@@ -294,7 +278,7 @@ class _PlayButtonState extends State<_PlayButton> {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final isBusy = widget.isLaunching || widget.isRunning;
-    
+
     return MouseRegion(
       cursor: !widget.isEnabled || isBusy ? MouseCursor.defer : SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
@@ -395,7 +379,7 @@ class _InstanceThumb extends StatelessWidget {
           : BrandIcon(
               type: BrandIconType.fromName(instance!.loader.name),
               url: instance!.icon,
-              size: 30, // slightly smaller so it doesn't touch edges
+              size: 30, 
             ),
     );
   }

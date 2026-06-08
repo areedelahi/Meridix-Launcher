@@ -1,4 +1,4 @@
-//! Classpath construction from version metadata.
+
 
 use std::path::{Path, PathBuf};
 
@@ -12,12 +12,6 @@ use crate::{
     Result,
 };
 
-/// Returns classpath entries for the current platform.
-///
-/// # Errors
-///
-/// Returns [`crate::LauncherError`] if a fallback Maven coordinate cannot be
-/// parsed.
 pub fn classpath_entries(
     version: &VersionJson,
     minecraft_dir: impl AsRef<Path>,
@@ -25,12 +19,6 @@ pub fn classpath_entries(
     classpath_entries_for_platform(version, minecraft_dir, Platform::current())
 }
 
-/// Returns classpath entries for an explicit platform.
-///
-/// # Errors
-///
-/// Returns [`crate::LauncherError`] if a fallback Maven coordinate cannot be
-/// parsed.
 pub fn classpath_entries_for_platform(
     version: &VersionJson,
     minecraft_dir: impl AsRef<Path>,
@@ -72,7 +60,6 @@ pub fn classpath_entries_for_platform(
     Ok(entries)
 }
 
-/// Joins classpath entries with the platform separator.
 pub fn classpath_string(entries: &[PathBuf]) -> String {
     let separator = super::arguments::classpath_separator();
     entries

@@ -1,4 +1,4 @@
-// cached_network_image import removed — using Image.network directly
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,15 +27,15 @@ class AccountsScreen extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _Toolbar(isSigningIn: auth.isSigningIn),
-        // Error banner
+
         if (auth.errorMessage != null)
           _ErrorBanner(
             message: auth.errorMessage!,
             onDismiss: () => ref.read(authProvider.notifier).clearError(),
           ),
-        // Sign-in progress
+
         if (auth.isSigningIn) const _SignInProgress(),
-        // Account list
+
         Expanded(
           child: auth.accounts.isEmpty && !auth.isSigningIn
               ? const _EmptyState()
@@ -52,8 +52,6 @@ class AccountsScreen extends ConsumerWidget {
     );
   }
 }
-
-// ── Toolbar ───────────────────────────────────────────────────────────────────
 
 class _Toolbar extends ConsumerWidget {
   const _Toolbar({required this.isSigningIn});
@@ -156,8 +154,6 @@ class _Toolbar extends ConsumerWidget {
   }
 }
 
-// ── Sign-in progress ──────────────────────────────────────────────────────────
-
 class _SignInProgress extends StatelessWidget {
   const _SignInProgress();
 
@@ -209,8 +205,6 @@ class _SignInProgress extends StatelessWidget {
   }
 }
 
-// ── Error banner ──────────────────────────────────────────────────────────────
-
 class _ErrorBanner extends StatelessWidget {
   const _ErrorBanner({required this.message, required this.onDismiss});
   final String message;
@@ -249,8 +243,6 @@ class _ErrorBanner extends StatelessWidget {
     );
   }
 }
-
-// ── Account tile ──────────────────────────────────────────────────────────────
 
 class _AccountTile extends ConsumerStatefulWidget {
   const _AccountTile({required this.account});
@@ -306,11 +298,10 @@ class _AccountTileState extends ConsumerState<_AccountTile> {
         children: [
           Row(
             children: [
-              // ── Avatar ──────────────────────────────────────────────────
+
               _Avatar(account: a),
               const SizedBox(width: AppSpacing.px12),
 
-              // ── Info ────────────────────────────────────────────────────
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -372,7 +363,6 @@ class _AccountTileState extends ConsumerState<_AccountTile> {
               ),
               const SizedBox(width: AppSpacing.px8),
 
-              // ── Primary Actions ─────────────────────────────────────────
               if (!a.isActive)
                 AppButton(
                   label: 'Set Active',
@@ -416,7 +406,6 @@ class _AccountTileState extends ConsumerState<_AccountTile> {
             ],
           ),
 
-          // ── Extended Actions ────────────────────────────────────────────
           const SizedBox(height: AppSpacing.px12),
           Divider(color: colors.divider, height: 1),
           const SizedBox(height: AppSpacing.px12),
@@ -444,7 +433,7 @@ class _AccountTileState extends ConsumerState<_AccountTile> {
                   size: AppButtonSize.small,
                 ),
                 const SizedBox(width: AppSpacing.px8),
-                // Refresh Token button — shows spinner while refreshing
+
                 isRefreshing
                     ? Padding(
                         padding: const EdgeInsets.symmetric(
@@ -508,13 +497,10 @@ class _AccountTileState extends ConsumerState<_AccountTile> {
   }
 }
 
-// ── Avatar ────────────────────────────────────────────────────────────────────
-
 class _Avatar extends StatelessWidget {
   const _Avatar({required this.account});
   final UserAccount account;
 
-  /// Player head URL — 44px face with hat layer overlay.
   String get _avatarUrl {
     final cleanUuid = account.uuid.replaceAll('-', '');
     return 'https://mc-heads.net/avatar/$cleanUuid/44';
@@ -552,21 +538,21 @@ class _Avatar extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            // Base face (x=8, y=8)
+
             Positioned(
               left: -42,
               top: -42,
               child: Image.network(
                 account.skinUrl!,
-                width: 336, // 64 * 5.25
+                width: 336, 
                 height: 336,
                 fit: BoxFit.fill,
-                filterQuality: FilterQuality.none, // sharp pixels
+                filterQuality: FilterQuality.none, 
               ),
             ),
-            // Hat layer (x=40, y=8)
+
             Positioned(
-              left: -210, // 40 * 5.25
+              left: -210, 
               top: -42,
               child: Image.network(
                 account.skinUrl!,
@@ -581,7 +567,6 @@ class _Avatar extends StatelessWidget {
       );
     }
 
-    // Fallback if skinUrl is null
     return Image.network(
       _avatarUrl,
       width: 44,
@@ -629,8 +614,6 @@ class _Avatar extends StatelessWidget {
   }
 }
 
-// ── Pill label ────────────────────────────────────────────────────────────────
-
 class _Pill extends StatelessWidget {
   const _Pill({required this.label, required this.color, this.small = false});
   final String label;
@@ -655,8 +638,6 @@ class _Pill extends StatelessWidget {
     );
   }
 }
-
-// ── Empty state ───────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState();

@@ -1,5 +1,5 @@
-/// Spacing scale (px / logical pixels) for LiquidLauncher.
-/// Use these constants everywhere — never hardcode raw numbers.
+
+
 abstract class AppSpacing {
   AppSpacing._();
 
@@ -18,28 +18,22 @@ abstract class AppSpacing {
   static const double px64 = 64.0;
   static const double px80 = 80.0;
 
-  // Border radii
   static const double radiusSm = 6.0;
   static const double radiusMd = 10.0;
   static const double radiusLg = 14.0;
   static const double radiusXl = 20.0;
   static const double radiusFull = 999.0;
 
-  // Sidebar
   static const double sidebarWidth = 68.0;
   static const double sidebarExpandedWidth = 200.0;
 
-  // Title bar
   static const double titleBarHeight = 40.0;
 
-  // Launch bar
   static const double launchBarHeight = 72.0;
 
-  // Card sizes
   static const double instanceCardWidth = 200.0;
   static const double instanceCardHeight = 220.0;
 
-  // Icon sizes
   static const double iconSm = 14.0;
   static const double iconMd = 18.0;
   static const double iconLg = 24.0;

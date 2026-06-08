@@ -1,5 +1,4 @@
-/// This is copied from Cargokit (which is the official way to use it currently)
-/// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
+
 
 import 'dart:io';
 
@@ -57,12 +56,11 @@ class BuildPod {
 
     final libName = environment.crateInfo.packageName;
 
-    // If there is static lib, use it and link it with pod
     if (staticLibs.isNotEmpty) {
       final finalTargetFile = path.join(outputDir, "lib$libName.a");
       performLipo(finalTargetFile, staticLibs.map((e) => e.path));
     } else {
-      // Otherwise try to replace bundle dylib with our dylib
+
       final bundlePaths = [
         '$libName.framework/Versions/A/$libName',
         '$libName.framework/$libName',
@@ -73,8 +71,6 @@ class BuildPod {
         if (File(targetFile).existsSync()) {
           performLipo(targetFile, dynamicLibs.map((e) => e.path));
 
-          // Replace absolute id with @rpath one so that it works properly
-          // when moved to Frameworks.
           runCommand("install_name_tool", [
             '-id',
             '@rpath/$bundlePath',

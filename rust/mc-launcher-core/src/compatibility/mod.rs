@@ -1,8 +1,4 @@
-//! Platform compatibility adjustments for Minecraft metadata.
-//!
-//! Mojang's historical version metadata does not always contain libraries that
-//! work on every modern platform. This module patches selected known cases
-//! before download planning or launch-command construction.
+
 
 use std::collections::HashMap;
 
@@ -14,41 +10,37 @@ use crate::{
     platform::{Arch, Os, Platform},
 };
 
-/// Whether compatibility patches should be applied.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CompatibilityPolicy {
-    /// Apply known compatibility patches for the target platform.
+
     Auto,
-    /// Leave version metadata unchanged.
+
     Disabled,
 }
 
-/// Compatibility patch that was applied to version metadata.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CompatibilityPatch {
-    /// Legacy LWJGL 2 metadata was patched for macOS arm64.
+
     LegacyMacArm64Lwjgl2,
-    /// Older LWJGL 3 metadata was patched for macOS arm64 natives.
+
     MacArm64Lwjgl3,
 }
 
-/// Describes how a launcher should host the game process for window creation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WindowingStrategy {
-    /// Start Java from the launcher's current process model.
+
     CurrentProcess,
-    /// Host Java from a real macOS app bundle or equivalent GUI app process.
+
     MacOsAppBundle,
 }
 
-/// Window-hosting guidance discovered while applying compatibility rules.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct WindowingHint {
-    /// Recommended process-hosting strategy.
+
     pub strategy: WindowingStrategy,
-    /// Whether the caller should verify that a visible game window was created.
+
     pub requires_visible_window_verification: bool,
-    /// Human-readable explanation for the recommendation.
+
     pub reason: &'static str,
 }
 
@@ -61,26 +53,22 @@ pub struct JavaRuntimeHint {
     pub arch: Arch,
     /// Short distribution hint suitable for logs or UI.
     pub distribution_hint: &'static str,
-    /// Human-readable explanation for the recommendation.
+
     pub reason: &'static str,
 }
 
-/// Version metadata plus compatibility guidance.
 #[derive(Debug, Clone, PartialEq)]
 pub struct CompatibilityResult {
-    /// Possibly patched version metadata.
+
     pub version: VersionJson,
-    /// Patches applied to produce [`CompatibilityResult::version`].
+
     pub applied_patches: Vec<CompatibilityPatch>,
-    /// Optional Java runtime recommendation.
+
     pub java_runtime: Option<JavaRuntimeHint>,
-    /// Window-hosting recommendation for the caller.
+
     pub windowing: WindowingHint,
 }
 
-/// Applies known compatibility adjustments for the given platform and policy.
-///
-/// The returned version is cloned from the input when no patch is needed.
 pub fn apply_compatibility(
     version: &VersionJson,
     platform: Platform,

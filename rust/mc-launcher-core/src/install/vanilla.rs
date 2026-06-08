@@ -1,4 +1,4 @@
-//! Download planning for vanilla client files.
+
 
 use std::path::Path;
 
@@ -10,15 +10,6 @@ use crate::{
     LauncherError, Result,
 };
 
-/// Builds a download plan for the current platform.
-///
-/// The plan includes the client jar, libraries, and asset index. Asset objects
-/// are planned after the index has been downloaded and read.
-///
-/// # Errors
-///
-/// Returns [`crate::LauncherError`] if required version metadata is missing or a
-/// library coordinate is invalid.
 pub fn plan_vanilla_downloads(
     version: &VersionJson,
     minecraft_dir: impl AsRef<Path>,
@@ -31,12 +22,6 @@ pub fn plan_vanilla_downloads(
     )
 }
 
-/// Builds a vanilla download plan for an explicit platform and compatibility policy.
-///
-/// # Errors
-///
-/// Returns [`crate::LauncherError`] if required version metadata is missing or a
-/// library coordinate is invalid.
 pub fn plan_vanilla_downloads_for_platform(
     version: &VersionJson,
     minecraft_dir: impl AsRef<Path>,

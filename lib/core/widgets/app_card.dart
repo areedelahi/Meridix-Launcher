@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 
-/// Glassmorphism card widget.
-/// Uses BackdropFilter blur + translucent glass surface + hairline border.
 class AppCard extends StatefulWidget {
   const AppCard({
     super.key,

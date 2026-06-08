@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 
-/// Gradient animated progress bar with optional shimmer overlay.
 class AppProgressBar extends StatefulWidget {
   const AppProgressBar({
     super.key,
@@ -13,7 +12,6 @@ class AppProgressBar extends StatefulWidget {
     this.borderRadius,
   });
 
-  /// Progress from 0.0 to 1.0. Pass null for indeterminate.
   final double? value;
   final String? label;
   final double height;
@@ -80,13 +78,13 @@ class _AppProgressBarState extends State<AppProgressBar>
                   )
                 : Stack(
                     children: [
-                      // Track
+
                       Container(
                         width: double.infinity,
                         height: widget.height,
                         color: colors.glass,
                       ),
-                      // Fill
+
                       AnimatedFractionallySizedBox(
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeOut,
@@ -104,7 +102,7 @@ class _AppProgressBarState extends State<AppProgressBar>
                           ),
                         ),
                       ),
-                      // Shimmer overlay
+
                       if (widget.showShimmer && (widget.value ?? 0) > 0)
                         AnimatedBuilder(
                           animation: _shimmerAnim,

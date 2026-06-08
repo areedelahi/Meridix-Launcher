@@ -4,7 +4,6 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 
-/// Glass-morphism modal dialog with spring entry animation.
 class GlassDialog extends StatefulWidget {
   const GlassDialog({
     super.key,
@@ -21,7 +20,6 @@ class GlassDialog extends StatefulWidget {
   final double width;
   final IconData? icon;
 
-  /// Show the dialog and return its result.
   static Future<T?> show<T>({
     required BuildContext context,
     required String title,
@@ -97,7 +95,7 @@ class _GlassDialogState extends State<GlassDialog> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // ── Header ─────────────────────────────────────────
+
                   Padding(
                     padding: const EdgeInsets.fromLTRB(
                       AppSpacing.px24,
@@ -128,10 +126,8 @@ class _GlassDialogState extends State<GlassDialog> {
                     ),
                   ),
 
-                  // ── Divider ────────────────────────────────────────
                   Divider(height: 1, color: colors.divider),
 
-                  // ── Content ────────────────────────────────────────
                   Flexible(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.all(AppSpacing.px24),
@@ -139,7 +135,6 @@ class _GlassDialogState extends State<GlassDialog> {
                     ),
                   ),
 
-                  // ── Actions ────────────────────────────────────────
                   if (widget.actions != null) ...[
                     Divider(height: 1, color: colors.divider),
                     Padding(

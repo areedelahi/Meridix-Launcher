@@ -22,7 +22,7 @@ class HomeScreen extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // ── Header Toolbar ──────────────────────────────────────────────
+
         Container(
           height: 60,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.px24, vertical: AppSpacing.px8),
@@ -43,7 +43,6 @@ class HomeScreen extends ConsumerWidget {
           ),
         ),
 
-        // ── Content ───────────────────────────────────────────────────
         Expanded(
           child: newsAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -63,7 +62,7 @@ class HomeScreen extends ConsumerWidget {
               return ListView(
                 padding: const EdgeInsets.all(AppSpacing.px24),
                 children: [
-                  // ── Featured News ───────────────────────────────────────
+
                   _FeaturedNewsCard(
                     title: featured.title,
                     subtitle: featured.text,
@@ -73,7 +72,6 @@ class HomeScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: AppSpacing.px24),
 
-                  // ── News Grid ───────────────────────────────────────────
                   Text('More News', style: AppTypography.titleMedium.copyWith(color: colors.textHigh)),
                   const SizedBox(height: AppSpacing.px16),
                   GridView.builder(
@@ -114,7 +112,7 @@ class _FeaturedNewsCard extends StatelessWidget {
     required this.date,
     required this.url,
   });
-  
+
   final String title, subtitle, imageUrl, date, url;
 
   @override
@@ -146,7 +144,6 @@ class _FeaturedNewsCard extends StatelessWidget {
                 child: const Icon(Icons.newspaper_rounded, size: 80, color: Colors.white24),
               ),
 
-            // Gradient Overlay
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -157,7 +154,6 @@ class _FeaturedNewsCard extends StatelessWidget {
               ),
             ),
 
-            // Content
             Padding(
               padding: const EdgeInsets.all(AppSpacing.px32),
               child: Column(
@@ -202,7 +198,7 @@ class _NewsGridCard extends StatelessWidget {
     required this.imageUrl,
     required this.url,
   });
-  
+
   final String title, category, imageUrl, url;
 
   @override

@@ -10,10 +10,10 @@ pub struct RuntimeListJsonEntryManifest {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct RuntimeListJsonEntry {
-    /// keys: {group, progress}
+
     pub availability: HashMap<String, i32>,
     pub manifest: RuntimeListJsonEntryManifest,
-    /// keys: {name, released}
+
     pub version: HashMap<String, String>,
 }
 
@@ -28,9 +28,9 @@ pub struct PlatformManifestJsonFileDownloads {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct PlatformManifestJsonFile {
-    /// keys: {lzma, raw}
+
     pub downloads: Option<HashMap<String, PlatformManifestJsonFileDownloads>>,
-    /// keys: {file, direactory, link}
+
     pub r#type: Option<String>,
     pub executable: Option<bool>,
     pub target: Option<String>,

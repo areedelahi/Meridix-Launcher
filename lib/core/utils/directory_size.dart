@@ -12,7 +12,7 @@ class DirectorySize {
         }
       }
     } catch (e) {
-      // Ignore access errors
+
     }
     return totalSize;
   }

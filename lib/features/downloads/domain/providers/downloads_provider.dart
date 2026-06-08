@@ -41,9 +41,11 @@ class DownloadsNotifier extends StateNotifier<List<DownloadTaskInfo>> {
   DownloadsNotifier(this.ref) : super([]);
   final Ref ref;
 
+  // Store cancel callbacks for each download to allow mid-flight cancellation
   final Map<String, VoidCallback> _cancelHooks = {};
 
   void removeTask(String id) {
+    // Execute cancel hook if task supports cancellation
     _cancelHooks[id]?.call();
     _cancelHooks.remove(id);
     state = state.where((t) => t.instanceId != id).toList();
@@ -60,7 +62,7 @@ class DownloadsNotifier extends StateNotifier<List<DownloadTaskInfo>> {
     final dartLoader = _mapLoader(instance);
 
     final taskId = instance.id;
-    
+
     if (!state.any((t) => t.instanceId == taskId)) {
       state = [
         ...state,
@@ -81,7 +83,7 @@ class DownloadsNotifier extends StateNotifier<List<DownloadTaskInfo>> {
       );
 
       final completer = Completer<String?>();
-      
+
       final sub = stream.listen((event) {
         event.when(
           stageStarted: (stage) {
@@ -106,12 +108,12 @@ class DownloadsNotifier extends StateNotifier<List<DownloadTaskInfo>> {
             }
           },
           installComplete: (versionId) {
-            // Update instance with actual versionId!
+
             final notifier = ref.read(instancesProvider.notifier);
             final currentList = ref.read(instancesProvider).value ?? [];
             final currentInstance = currentList.firstWhere((i) => i.id == instance.id, orElse: () => instance);
             notifier.updateInstance(currentInstance.copyWith(profileId: versionId));
-            
+
             updateTask(taskId, subtitle: 'Complete!', progress: 1.0);
             if (!completer.isCompleted) completer.complete(versionId);
           },
@@ -142,10 +144,9 @@ class DownloadsNotifier extends StateNotifier<List<DownloadTaskInfo>> {
 
   Future<void> installModpack(RemoteMod mod, RemoteModVersion version, {Instance? updateInstance, bool overwriteConfig = false}) async {
     final installer = ref.read(modpackInstallerServiceProvider);
-    
-    // We generate a temporary ID to track the pre-installation steps
+
     final taskId = updateInstance?.id ?? ('modpack_' + DateTime.now().millisecondsSinceEpoch.toString());
-    
+
     state = [
       ...state,
       DownloadTaskInfo(
@@ -173,20 +174,18 @@ class DownloadsNotifier extends StateNotifier<List<DownloadTaskInfo>> {
         overwriteConfig: overwriteConfig,
       );
 
-      // Now we have the actual instance. Replace the dummy task with the real instance task ID so it transitions smoothly.
       state = state.map((t) {
         if (t.instanceId == taskId) {
           return DownloadTaskInfo(
             instanceId: newInstance.id,
             title: 'Finalizing ' + newInstance.name,
             subtitle: 'Bootstrapping Vanilla/Loader...',
-            progress: 1.0, // Finish the modpack part
+            progress: 1.0, 
           );
         }
         return t;
       }).toList();
 
-      // Start the standard instance asset download
       await startDownload(newInstance);
 
     } catch (e) {
@@ -199,9 +198,9 @@ class DownloadsNotifier extends StateNotifier<List<DownloadTaskInfo>> {
 
   Future<void> installLocalModpack(File mrpackFile) async {
     final installer = ref.read(modpackInstallerServiceProvider);
-    
+
     final taskId = 'modpack_local_' + DateTime.now().millisecondsSinceEpoch.toString();
-    
+
     state = [
       ...state,
       DownloadTaskInfo(

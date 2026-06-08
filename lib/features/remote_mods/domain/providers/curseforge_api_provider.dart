@@ -14,7 +14,7 @@ class CurseForgeApiProvider {
   int _mapClassId(String folderName) {
     if (folderName == 'resourcepacks') return 12;
     if (folderName == 'shaderpacks') return 6552;
-    return 6; // Mods
+    return 6; 
   }
 
   int? _mapLoader(String? loader) {
@@ -36,7 +36,7 @@ class CurseForgeApiProvider {
     bool showAllVersions = false,
   }) async {
     final classId = _mapClassId(folderName);
-    
+
     final Map<String, dynamic> queryParams = {
       'gameId': 432,
       'classId': classId,
@@ -57,7 +57,7 @@ class CurseForgeApiProvider {
     }
 
     final response = await _dio.get('/mods/search', queryParameters: queryParams);
-    
+
     final data = response.data['data'] as List;
     return data.map((mod) {
       return RemoteMod(
@@ -82,7 +82,7 @@ class CurseForgeApiProvider {
     final Map<String, dynamic> queryParams = {
       'pageSize': 20,
     };
-    
+
     if (!showAllVersions) {
       if (gameVersion != null && gameVersion.isNotEmpty) {
         queryParams['gameVersion'] = gameVersion;
@@ -96,7 +96,7 @@ class CurseForgeApiProvider {
     }
 
     final response = await _dio.get('/mods/$modId/files', queryParameters: queryParams);
-    
+
     final data = response.data['data'] as List;
     return data.map((f) {
       final releaseTypeInt = f['releaseType'] as int;
@@ -108,10 +108,10 @@ class CurseForgeApiProvider {
         name: f['displayName'],
         releaseType: releaseType,
         datePublished: DateTime.parse(f['fileDate']),
-        downloadUrl: f['downloadUrl'] ?? '', // CurseForge might omit this if the author disabled 3rd party downloads
+        downloadUrl: f['downloadUrl'] ?? '', 
         filename: f['fileName'],
         gameVersions: List<String>.from(f['gameVersions'] ?? []),
-        loaders: [], // Usually embedded in gameVersions for CurseForge
+        loaders: [], 
       );
     }).toList();
   }

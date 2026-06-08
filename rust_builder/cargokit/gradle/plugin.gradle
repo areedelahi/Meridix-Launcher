@@ -1,5 +1,4 @@
-/// This is copied from Cargokit (which is the official way to use it currently)
-/// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
+
 
 import java.nio.file.Paths
 import org.apache.tools.ant.taskdefs.condition.Os
@@ -9,8 +8,8 @@ CargoKitPlugin.file = buildscript.sourceFile
 apply plugin: CargoKitPlugin
 
 class CargoKitExtension {
-    String manifestDir; // Relative path to folder containing Cargo.toml
-    String libname; // Library name within Cargo.toml. Must be a cdylib
+    String manifestDir; 
+    String libname; 
 }
 
 abstract class CargoKitBuildTask extends DefaultTask {
@@ -120,7 +119,6 @@ class CargoKitPlugin implements Plugin<Project> {
 
         def cargoBuildDir = "${project.buildDir}/build"
 
-        // Determine if the project is an application or library
         def isApplication = plugin.project.plugins.hasPlugin('com.android.application')
         def variants = isApplication ? plugin.project.android.applicationVariants : plugin.project.android.libraryVariants
 
@@ -139,14 +137,11 @@ class CargoKitPlugin implements Plugin<Project> {
                 platforms = plugin.getTargetPlatforms().collect()
             }
 
-            // Same thing addFlutterDependencies does in flutter.gradle
             if (buildType == "debug") {
                 platforms.add("android-x86")
                 platforms.add("android-x64")
             }
 
-            // The task name depends on plugin properties, which are not available
-            // at this point
             project.getGradle().afterProject {
                 def taskName = "cargokitCargoBuild${project.cargokit.libname.capitalize()}${buildType.capitalize()}";
 
@@ -172,7 +167,7 @@ class CargoKitPlugin implements Plugin<Project> {
                 def onTask = { newTask ->
                     if (newTask.name == "merge${buildType.capitalize()}NativeLibs") {
                         newTask.dependsOn task
-                        // Fix gradle 7.4.2 not picking up JNI library changes
+
                         newTask.outputs.upToDateWhen { false }
                     }
                 }

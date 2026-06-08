@@ -28,8 +28,7 @@ class LocalFilesNotifier extends FamilyAsyncNotifier<List<LocalFileItem>, LocalF
     await for (final entity in dir.list()) {
       final stat = await entity.stat();
       final name = p.basename(entity.path);
-      
-      // Ignore hidden files like .DS_Store
+
       if (name.startsWith('.')) continue;
 
       LocalModMetadata? metadata;
@@ -55,7 +54,6 @@ class LocalFilesNotifier extends FamilyAsyncNotifier<List<LocalFileItem>, LocalF
       ));
     }
 
-    // Sort by name, with enabled items first, but directories at the very top
     items.sort((a, b) {
       if (a.isDirectory != b.isDirectory) {
         return a.isDirectory ? -1 : 1;
@@ -75,7 +73,7 @@ class LocalFilesNotifier extends FamilyAsyncNotifier<List<LocalFileItem>, LocalF
 
     final dir = p.dirname(item.path);
     String newName;
-    
+
     if (item.isEnabled) {
       newName = '${item.name}.disabled';
     } else {

@@ -1,5 +1,4 @@
-/// This is copied from Cargokit (which is the official way to use it currently)
-/// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
+
 
 import 'dart:io';
 
@@ -238,7 +237,7 @@ class VerifyBinariesCommand extends Command {
 
 Future<void> runMain(List<String> args) async {
   try {
-    // Init logging before options are loaded
+
     initLogging();
 
     if (Platform.environment['_CARGOKIT_NDK_LINK_TARGET'] != null) {
@@ -262,8 +261,7 @@ Future<void> runMain(List<String> args) async {
     log.severe('Cargokit BuildTool failed with error:');
     log.severe(kSeparator);
     log.severe(e);
-    // This tells user to install Rust, there's no need to pollute the log with
-    // stack trace.
+
     if (e is! RustupNotFoundException) {
       log.severe(kSeparator);
       log.severe(s);

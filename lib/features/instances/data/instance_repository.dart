@@ -12,6 +12,7 @@ final instanceRepositoryProvider = Provider<InstanceRepository>((ref) {
 });
 
 class InstanceRepository {
+  // Check custom directory first in case user moved launcher data
   Future<Directory> get _instancesDir async {
     final prefs = await SharedPreferences.getInstance();
     final customDir = prefs.getString('customDataDirectory');
@@ -21,7 +22,7 @@ class InstanceRepository {
     } else {
       baseDir = await getMeridixSupportDirectory();
     }
-    
+
     final dir = Directory(p.join(baseDir.path, 'instances'));
     if (!await dir.exists()) {
       await dir.create(recursive: true);
@@ -29,23 +30,21 @@ class InstanceRepository {
     return dir;
   }
 
-  /// Get the exact path to an instance directory by its ID
   Future<String> getInstancePath(String id) async {
     final dir = await _instancesDir;
     return p.join(dir.path, id);
   }
 
-  /// Get the root launcher directory
   Future<String> getLauncherRoot() async {
     final dir = await _instancesDir;
     return dir.parent.path;
   }
 
-  /// List all instances saved in the instances directory
   Future<List<Instance>> getInstances() async {
     final dir = await _instancesDir;
     final List<Instance> instances = [];
 
+    // Scan directory for instance.json metadata files
     await for (final entity in dir.list()) {
       if (entity is Directory) {
         final instanceFile = File(p.join(entity.path, 'instance.json'));
@@ -63,14 +62,12 @@ class InstanceRepository {
     return instances;
   }
 
-  /// Saves or updates an instance configuration to disk
   Future<void> saveInstance(Instance instance) async {
     final dir = await _instancesDir;
     final instanceDir = Directory(p.join(dir.path, instance.id));
     if (!await instanceDir.exists()) {
       await instanceDir.create(recursive: true);
 
-      // Also create standard Minecraft folders for convenience
       await Directory(p.join(instanceDir.path, 'mods')).create();
       await Directory(p.join(instanceDir.path, 'resourcepacks')).create();
       await Directory(p.join(instanceDir.path, 'shaderpacks')).create();
@@ -79,13 +76,12 @@ class InstanceRepository {
     }
 
     final instanceFile = File(p.join(instanceDir.path, 'instance.json'));
-    // Use jsonEncode with pretty print so users can manually edit it easily
+
     const encoder = JsonEncoder.withIndent('  ');
     final jsonString = encoder.convert(instance.toJson());
     await instanceFile.writeAsString(jsonString);
   }
 
-  /// Deletes an instance folder completely
   Future<void> deleteInstance(String id) async {
     final dir = await _instancesDir;
     final instanceDir = Directory(p.join(dir.path, id));

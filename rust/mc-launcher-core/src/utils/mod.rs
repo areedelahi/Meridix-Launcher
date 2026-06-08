@@ -1,9 +1,4 @@
-//! Compatibility utilities and convenience helpers.
-//!
-//! Some functions in this module predate the [`crate::launcher::Launcher`]
-//! facade and are retained for compatibility. New code should prefer the
-//! facade for installation and command construction, while directory and
-//! version-list helpers remain useful for launcher setup screens.
+
 
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -27,20 +22,20 @@ pub mod natives;
 pub fn get_minecraft_directory() -> PathBuf {
     let os = env::consts::OS;
     if os == "windows" {
-        // Windows
+
         let home = env::var("APPDATA").unwrap_or_else(|_| {
-            // If APPDATA is not set, use the default path
+
             let home = env::var("USERPROFILE").expect("USERPROFILE is not set");
             home
         });
         let appdata = format!(r"{}\.minecraft", home);
         PathBuf::from(appdata)
     } else if os == "macos" {
-        // MacOS
+
         let home = env::var("HOME").expect("HOME is not set");
         PathBuf::from(format!("{}/Library/Application Support/minecraft", home))
     } else {
-        // Other platforms (Linux and others)
+
         let home = env::var("HOME").expect("HOME is not set");
         PathBuf::from(format!("{}/.minecraft", home))
     }
@@ -189,7 +184,6 @@ pub fn get_java_executable() -> Option<String> {
     Some("java".to_string())
 }
 
-// Return the version of mc-launcher-core
 pub fn get_core_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }
@@ -284,20 +278,12 @@ mod tests {
 
     #[test]
     fn debug_get_installed_versions() {
-        // match get_installed_versions(r"H:\mc\mc-launcher-core\test\.minecraft") {
-        //     Ok(res) => {
-        //         println!("Minecraft installed_versions: {:#?}", res);
-        //     }
-        //     Err(e) => println!("{:#?}", e),
-        // }
+
     }
 
     #[test]
     fn debug_get_available_versions() {
-        // println!(
-        //     "Available versions: {:#?}",
-        //     get_available_versions(r"H:\mc\mc-launcher-core\test\.minecraft")
-        // );
+
     }
 
     #[test]
@@ -317,19 +303,12 @@ mod tests {
 
     #[test]
     fn debug_is_version_valid() {
-        // println!(
-        //     "is_version_valid: {}",
-        //     is_version_valid("1.20", r"H:\mc\mc-launcher-core\test\.minecraft")
-        // );
+
     }
 
     #[test]
     fn debug_get_minecraft_news() {
-        // let default_mcnews_options = MinecraftNewsOptions::default();
-        // match get_minecraft_news(default_mcnews_options) {
-        //     Ok(res) => println!("{:#?}", res),
-        //     Err(e) => println!("{:#?}", e),
-        // }
+
     }
 
     #[test]
@@ -340,9 +319,6 @@ mod tests {
 
     #[test]
     fn debug_is_minecraft_installed() {
-        // println!(
-        //     "{}",
-        //     is_minecraft_installed(r"H:\mc\mc-launcher-core\test\.minecraft")
-        // );
+
     }
 }

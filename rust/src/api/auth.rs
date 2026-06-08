@@ -21,7 +21,8 @@ pub struct MinecraftAccount {
     pub access_token: String,
 }
 
-const CLIENT_ID: &str = "00000000402b5328"; // Minecraft official client ID
+// Azure app registration ID for Microsoft OAuth device flow
+const CLIENT_ID: &str = "00000000402b5328"; 
 
 #[derive(Deserialize)]
 struct DeviceCodeResponse {
@@ -118,11 +119,13 @@ struct MinecraftProfileResponse {
     name: String,
 }
 
+// Multi-step OAuth flow: device code -> MSA token -> Xbox Live -> XSTS -> Minecraft auth
 pub async fn poll_for_token_and_login(device_code: String, interval: u64) -> anyhow::Result<MinecraftAccount> {
     let client = Client::new();
-    
+
     let mut msa_token = String::new();
-    // 1. Poll for Microsoft Token
+
+    // Poll Microsoft endpoint until user completes auth on device
     loop {
         let res = client.post("https://login.microsoftonline.com/consumers/oauth2/v2.0/token")
             .form(&[
@@ -143,10 +146,10 @@ pub async fn poll_for_token_and_login(device_code: String, interval: u64) -> any
                 return Err(anyhow::anyhow!("MSA Token Error: {}", error));
             }
         }
+        // Wait before retrying to avoid rate limits
         sleep(Duration::from_secs(interval)).await;
     }
 
-    // 2. Xbox Live Auth
     let xbl_req = XboxLiveAuthRequest {
         Properties: XboxLiveProperties {
             AuthMethod: "RPS".to_string(),
@@ -164,7 +167,6 @@ pub async fn poll_for_token_and_login(device_code: String, interval: u64) -> any
         .json::<XboxAuthResponse>()
         .await?;
 
-    // 3. XSTS Auth
     let xsts_req = XstsAuthRequest {
         Properties: XstsProperties {
             SandboxId: "RETAIL".to_string(),
@@ -178,18 +180,17 @@ pub async fn poll_for_token_and_login(device_code: String, interval: u64) -> any
         .json(&xsts_req)
         .send()
         .await?;
-        
+
     if !xsts_res.status().is_success() {
          return Err(anyhow::anyhow!("XSTS Auth failed. You might not have a Minecraft account."));
     }
-    
+
     let xsts_res = xsts_res.json::<XboxAuthResponse>().await?;
 
     let uhs = xsts_res.DisplayClaims.xui.get(0)
         .map(|x| x.uhs.clone())
         .unwrap_or_default();
 
-    // 4. Minecraft Auth
     let mc_req = MinecraftAuthRequest {
         identityToken: format!("XBL3.0 x={};{}", uhs, xsts_res.Token),
     };
@@ -201,7 +202,6 @@ pub async fn poll_for_token_and_login(device_code: String, interval: u64) -> any
         .json::<MinecraftAuthResponse>()
         .await?;
 
-    // 5. Minecraft Profile
     let profile_res = client.get("https://api.minecraftservices.com/minecraft/profile")
         .header("Authorization", format!("Bearer {}", mc_res.access_token))
         .send()

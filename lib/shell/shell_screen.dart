@@ -26,7 +26,6 @@ const _navItems = [
       icon: Icons.receipt_long_rounded, label: 'Logs', routePath: '/console'),
 ];
 
-/// Root shell: title bar + sidebar + content area + launch bar.
 class ShellScreen extends ConsumerWidget {
   const ShellScreen({super.key, required this.child});
   final Widget child;
@@ -41,10 +40,8 @@ class ShellScreen extends ConsumerWidget {
       backgroundColor: colors.background,
       body: Column(
         children: [
-          // ── macOS drag region ────────────────────────────────────────
-          // With TitleBarStyle.hidden the traffic lights float at ~(8,12).
-          // We add a 28px tall DragToMoveArea so the user can still drag
-          // the window, and the content starts below the buttons.
+
+          // macOS hides native title bar, need draggable area for window movement
           if (Platform.isMacOS)
             const DragToMoveArea(
               child: SizedBox(
@@ -53,11 +50,10 @@ class ShellScreen extends ConsumerWidget {
               ),
             ),
 
-          // ── Main layout: sidebar + content ──────────────────────────
           Expanded(
             child: Row(
               children: [
-                // Sidebar
+
                 AppSidebar(
                   items: _navItems,
                   selectedPath: location,
@@ -83,14 +79,12 @@ class ShellScreen extends ConsumerWidget {
                   ),
                 ),
 
-                // Vertical divider
                 VerticalDivider(
                   width: 1,
                   thickness: 1,
                   color: colors.divider,
                 ),
 
-                // Page content
                 Expanded(
                   child: Column(
                     children: [
@@ -102,7 +96,6 @@ class ShellScreen extends ConsumerWidget {
             ),
           ),
 
-          // ── Launch Bar ─────────────────────────────────────────────
           Divider(height: 1, color: colors.divider),
           const LaunchBar(),
         ],
@@ -111,7 +104,6 @@ class ShellScreen extends ConsumerWidget {
   }
 }
 
-/// Icon button pinned to the bottom of the sidebar.
 class _FooterNavItem extends StatefulWidget {
   const _FooterNavItem({
     required this.icon,

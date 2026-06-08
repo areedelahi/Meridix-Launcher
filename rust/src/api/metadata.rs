@@ -2,6 +2,7 @@ use flutter_rust_bridge::frb;
 use mc_launcher_core::loader;
 use serde::{Deserialize, Serialize};
 
+// Fetch available Minecraft versions from official Mojang metadata
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct VanillaVersion {
     pub id: String,
@@ -15,6 +16,7 @@ struct VanillaManifest {
 }
 
 pub fn get_vanilla_versions() -> anyhow::Result<Vec<VanillaVersion>> {
+    // Fetch official version manifest from Mojang servers
     let manifest: VanillaManifest = reqwest::blocking::get("https://launchermeta.mojang.com/mc/game/version_manifest_v2.json")?.json()?;
     Ok(manifest.versions)
 }

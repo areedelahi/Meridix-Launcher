@@ -75,7 +75,7 @@ class _ConsoleScreenState extends ConsumerState<ConsoleScreen> {
     final repo = ref.read(instanceRepositoryProvider);
     final path = await repo.getInstancePath(_selectedInstanceId!);
     final logsPath = '$path/logs';
-    
+
     final dir = Directory(logsPath);
     if (!await dir.exists()) {
       await dir.create(recursive: true);
@@ -99,7 +99,7 @@ class _ConsoleScreenState extends ConsumerState<ConsoleScreen> {
 
     return Column(
       children: [
-        // Toolbar
+
         Container(
           height: 60,
           padding: const EdgeInsets.symmetric(
@@ -172,7 +172,6 @@ class _ConsoleScreenState extends ConsumerState<ConsoleScreen> {
           ),
         ),
 
-        // Log view
         Expanded(
           child: Container(
             color: const Color(0xFF090B0F),

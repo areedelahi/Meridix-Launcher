@@ -3,10 +3,10 @@ import 'app_colors.dart';
 import 'app_typography.dart';
 import 'app_spacing.dart';
 
-/// Assembles the global ThemeData with brand tokens injected.
 class AppTheme {
   AppTheme._();
 
+  // Material 3 dark theme with custom Minecraft-styled color palette
   static ThemeData build() {
     const colors = AppColors.dark;
 
@@ -18,6 +18,7 @@ class AppTheme {
       cardColor: colors.surface,
       dividerColor: colors.divider,
 
+      // Define semantic colors for consistent UI elements
       colorScheme: ColorScheme.dark(
         brightness: Brightness.dark,
         primary: colors.primary,
@@ -34,13 +35,11 @@ class AppTheme {
 
       textTheme: AppTypography.buildTextTheme(colors.textHigh),
 
-      // ── Icon theme ──────────────────────────────────────────────────────
       iconTheme: const IconThemeData(
         color: Color(0xFFADB5C7),
         size: AppSpacing.iconMd,
       ),
 
-      // ── AppBar (hidden in favour of CustomTitleBar, but kept for fallback) ──
       appBarTheme: AppBarTheme(
         backgroundColor: colors.background,
         elevation: 0,
@@ -51,7 +50,6 @@ class AppTheme {
         iconTheme: IconThemeData(color: colors.textMed),
       ),
 
-      // ── Cards ────────────────────────────────────────────────────────────
       cardTheme: CardThemeData(
         color: colors.surface,
         elevation: 0,
@@ -62,7 +60,6 @@ class AppTheme {
         margin: EdgeInsets.zero,
       ),
 
-      // ── Dialogs ──────────────────────────────────────────────────────────
       dialogTheme: DialogThemeData(
         backgroundColor: colors.surface,
         elevation: 0,
@@ -72,7 +69,6 @@ class AppTheme {
         ),
       ),
 
-      // ── Input / TextField ────────────────────────────────────────────────
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: colors.glass,
@@ -100,7 +96,6 @@ class AppTheme {
         labelStyle: AppTypography.labelLarge.copyWith(color: colors.textMed),
       ),
 
-      // ── Scrollbars ───────────────────────────────────────────────────────
       scrollbarTheme: ScrollbarThemeData(
         thumbColor:
             WidgetStateProperty.all(colors.textLow.withValues(alpha: 0.4)),
@@ -108,7 +103,6 @@ class AppTheme {
         thickness: WidgetStateProperty.all(4),
       ),
 
-      // ── Tooltips ─────────────────────────────────────────────────────────
       tooltipTheme: TooltipThemeData(
         decoration: BoxDecoration(
           color: colors.surfaceElevated,
@@ -122,21 +116,18 @@ class AppTheme {
         ),
       ),
 
-      // ── Divider ──────────────────────────────────────────────────────────
       dividerTheme: DividerThemeData(
         color: colors.divider,
         thickness: 1,
         space: 1,
       ),
 
-      // ── Progress indicator ───────────────────────────────────────────────
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: colors.primary,
         linearTrackColor: colors.glass,
         linearMinHeight: 3,
       ),
 
-      // ── Slider ───────────────────────────────────────────────────────────
       sliderTheme: SliderThemeData(
         activeTrackColor: colors.primary,
         inactiveTrackColor: colors.glass,
@@ -146,7 +137,6 @@ class AppTheme {
         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
       ),
 
-      // ── SnackBar ─────────────────────────────────────────────────────────
       snackBarTheme: SnackBarThemeData(
         backgroundColor: colors.surfaceElevated,
         contentTextStyle: AppTypography.bodyMedium.copyWith(color: colors.textHigh),
@@ -157,7 +147,6 @@ class AppTheme {
         ),
       ),
 
-      // ── Extensions ───────────────────────────────────────────────────────
       extensions: const <ThemeExtension<dynamic>>[
         AppColors.dark,
       ],

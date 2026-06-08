@@ -121,7 +121,7 @@ class _LocalFilesTabState extends ConsumerState<LocalFilesTab> {
               children: [
                 Text(widget.title, style: AppTypography.titleLarge.copyWith(color: colors.textHigh)),
                 const SizedBox(width: AppSpacing.px24),
-                if (widget.allowToggle) // Only show Modrinth/CurseForge for mods/resourcepacks/shaders
+                if (widget.allowToggle) 
                   _SegmentedTabPicker(
                     tabs: const ['Installed', 'Modrinth', 'CurseForge'],
                     selected: _currentView,
@@ -250,7 +250,7 @@ class _LocalInstalledView extends ConsumerWidget {
             final file = filtered[index];
             final sizeKb = file.sizeBytes / 1024;
             final sizeStr = sizeKb > 1024 ? '${(sizeKb / 1024).toStringAsFixed(1)} MB' : '${sizeKb.toStringAsFixed(1)} KB';
-            
+
             final displayName = file.metadata?.name ?? file.name;
             final displayDesc = file.metadata?.description ?? (file.isDirectory ? 'Folder • ' + sizeStr : sizeStr);
             final displayVersion = file.metadata?.version;
@@ -355,7 +355,7 @@ class _RemoteBrowserView extends ConsumerWidget {
 
   Future<void> _showVersionPicker(BuildContext context, WidgetRef ref, RemoteMod mod, RemoteSearchQuery searchQuery) async {
     final colors = context.colors;
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -371,14 +371,13 @@ class _RemoteBrowserView extends ConsumerWidget {
       },
     );
 
-    // Give the framework a frame to lock the dialog before we potentially pop it immediately
     await Future.delayed(const Duration(milliseconds: 50));
 
     try {
-      // Always fetch all versions for the picker so the user sees everything
+
       final versions = await ref.read(remoteModsProvider(searchQuery).notifier).getVersions(mod);
 
-      if (context.mounted) Navigator.of(context, rootNavigator: true).pop(); // Close loading dialog
+      if (context.mounted) Navigator.of(context, rootNavigator: true).pop(); 
 
       if (versions.isEmpty) {
         if (context.mounted) {
@@ -407,7 +406,7 @@ class _RemoteBrowserView extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        Navigator.pop(context); // Close loading dialog
+        Navigator.pop(context); 
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to fetch versions: $e')));
       }
     }
@@ -566,7 +565,7 @@ class _VersionSelectionDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    
+
     return AlertDialog(
       backgroundColor: colors.surface,
       title: Text('Install ${mod.title}', style: AppTypography.titleLarge.copyWith(color: colors.textHigh)),

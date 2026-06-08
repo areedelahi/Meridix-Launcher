@@ -30,7 +30,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Tab sidebar
+
         Container(
           width: 160,
           color: colors.sidebarBg,
@@ -63,7 +63,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         VerticalDivider(width: 1, color: colors.divider),
 
-        // Content
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(AppSpacing.px24),
@@ -211,8 +210,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 }
 
-// ── General settings ──────────────────────────────────────────────────────────
-
 class _GeneralSettings extends StatelessWidget {
   const _GeneralSettings({
     required this.customDataDirectory,
@@ -301,7 +298,7 @@ class _GeneralSettings extends StatelessWidget {
             ],
           ),
         ),
-        
+
         const SizedBox(height: AppSpacing.px16),
         Align(
           alignment: Alignment.centerRight,
@@ -315,8 +312,6 @@ class _GeneralSettings extends StatelessWidget {
     );
   }
 }
-
-// ── Java settings ─────────────────────────────────────────────────────────────
 
 class _JavaSettings extends StatefulWidget {
   const _JavaSettings({
@@ -369,7 +364,7 @@ class _JavaSettingsState extends State<_JavaSettings> {
     return _Section(
       title: 'Java & Memory',
       children: [
-        // Memory Allocation
+
         AppCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -430,7 +425,6 @@ class _JavaSettingsState extends State<_JavaSettings> {
           ),
         ),
 
-        // JVM Arguments
         AppCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -462,7 +456,6 @@ class _JavaSettingsState extends State<_JavaSettings> {
           ),
         ),
 
-        // Java Path
         AppCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -540,7 +533,7 @@ class _JavaSettingsState extends State<_JavaSettings> {
             ],
           ),
         ),
-        
+
         const SizedBox(height: AppSpacing.px16),
         Align(
           alignment: Alignment.centerRight,
@@ -554,9 +547,6 @@ class _JavaSettingsState extends State<_JavaSettings> {
     );
   }
 }
-
-
-// ── About panel ───────────────────────────────────────────────────────────────
 
 class _AboutPanel extends StatelessWidget {
   const _AboutPanel();
@@ -628,8 +618,6 @@ class _AboutPanel extends StatelessWidget {
     );
   }
 }
-
-// ── Shared components ─────────────────────────────────────────────────────────
 
 class _Section extends StatelessWidget {
   const _Section({required this.title, required this.children});

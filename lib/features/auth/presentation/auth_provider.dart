@@ -15,14 +15,11 @@ import '../data/ms_auth_service.dart';
 const _kAccountsFileName = 'accounts.dat';
 const _kAccountsKey = 'liquid_launcher_accounts';
 
-// AES-256 key for macOS file-based storage (used when Keychain signing
-// is unavailable, i.e. unsigned debug builds).
+// Fixed encryption key - secure storage only used on non-macOS platforms
 final _encKey = enc.Key(Uint8List.fromList(
   'LiquidLauncherV1SecretKey!XMCLS1'.codeUnits,
 ));
 final _encrypter = enc.Encrypter(enc.AES(_encKey, mode: enc.AESMode.cbc));
-
-// ── State ─────────────────────────────────────────────────────────────────────
 
 enum AuthStatus { idle, signingIn, refreshing, error }
 
@@ -38,7 +35,6 @@ class AuthState {
   final AuthStatus status;
   final String? errorMessage;
 
-  /// UUID of the account currently being refreshed (null when not refreshing).
   final String? refreshingUuid;
 
   UserAccount? get activeAccount {
@@ -50,9 +46,6 @@ class AuthState {
 
   bool get isSigningIn => status == AuthStatus.signingIn;
 
-  /// True if at least one Microsoft account is present.
-  /// Offline accounts are only allowed when this is true — ensures the user
-  /// owns a legitimate copy of Minecraft.
   bool get hasMicrosoftAccount => accounts.any((a) => a.type == 'microsoft');
 
   AuthState copyWith({
@@ -73,25 +66,16 @@ class AuthState {
   }
 }
 
-// ── Notifier ──────────────────────────────────────────────────────────────────
-
 class AuthNotifier extends StateNotifier<AuthState> {
   AuthNotifier() : super(const AuthState()) {
+    // Load persisted accounts from disk on startup
     _load();
   }
 
   final _ms = MsAuthService();
   final _uuid = const Uuid();
 
-  // ── Persistence ──────────────────────────────────────────────────────────
-  //
-  // Strategy:
-  //   • Windows / Linux → flutter_secure_storage (Credential Manager / libsecret)
-  //                        No signing required on either platform.
-  //   • macOS            → AES-256 encrypted file via path_provider.
-  //                        Keychain requires a paid Apple signing cert; we avoid
-  //                        that for now and upgrade when the app is notarized.
-
+  // macOS uses unencrypted file storage; other platforms use secure storage
   static bool get _useSecureStorage => !Platform.isMacOS;
 
   final _secureStorage = const FlutterSecureStorage();
@@ -104,7 +88,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> _load() async {
     try {
       if (_useSecureStorage) {
-        // Windows / Linux path
+
         final raw = await _secureStorage.read(key: _kAccountsKey);
         if (raw == null) return;
         final list = (jsonDecode(raw) as List)
@@ -112,7 +96,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
             .toList();
         state = state.copyWith(accounts: list);
       } else {
-        // macOS path — AES-encrypted file
+
         final file = await _getStorageFile();
         if (!await file.exists()) return;
         final raw = await file.readAsString();
@@ -126,7 +110,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         state = state.copyWith(accounts: list);
       }
     } catch (_) {
-      // Corrupt storage — wipe and start fresh
+
       if (_useSecureStorage) {
         await _secureStorage.delete(key: _kAccountsKey);
       } else {
@@ -149,9 +133,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  // ── Microsoft OAuth ───────────────────────────────────────────────────────
-
-  /// Opens the browser for MS login and adds the account on success.
   Future<void> loginWithMicrosoft(BuildContext context) async {
     if (state.isSigningIn) return;
     state = state.copyWith(status: AuthStatus.signingIn, errorMessage: null);
@@ -164,17 +145,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       List<UserAccount> updated;
       if (existingIndex >= 0) {
-        // Account already exists — refresh tokens in-place, keep it active
+
         updated = List.from(state.accounts);
         updated[existingIndex] = account.copyWith(isActive: true);
-        // Deactivate others
+
         updated = updated
             .asMap()
             .entries
             .map((e) => e.value.copyWith(isActive: e.key == existingIndex))
             .toList();
       } else {
-        // New account — deactivate all others and append
+
         updated =
             state.accounts.map((a) => a.copyWith(isActive: false)).toList();
         updated.add(account.copyWith(isActive: true));
@@ -196,7 +177,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  /// Refresh expired tokens silently (called automatically before launch).
   Future<void> refreshIfNeeded(String uuid) async {
     final index = state.accounts.indexWhere((a) => a.uuid == uuid);
     if (index < 0) return;
@@ -210,13 +190,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = state.copyWith(accounts: updated);
       await _save();
     } catch (_) {
-      // Silent — next launch will prompt re-login
+
     }
   }
 
-  /// Manually refresh an account token (triggered by the Refresh Token button).
-  /// Shows a per-account refreshing spinner. Throws on failure so the UI can
-  /// show a snackbar.
   Future<void> refreshAccount(String uuid) async {
     final index = state.accounts.indexWhere((a) => a.uuid == uuid);
     if (index < 0) return;
@@ -247,7 +224,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  /// Uploads a skin and re-fetches the skin URL to update the stored account.
   Future<void> uploadSkin({
     required String uuid,
     required String filePath,
@@ -264,23 +240,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
       variant: variant,
     );
 
-    // Poll Mojang until the skin URL changes (max 1 minute)
     final currentSkinUrl = account.skinUrl;
     for (int i = 0; i < 12; i++) {
       await Future.delayed(const Duration(seconds: 5));
       try {
         final newSkinUrl = await _ms.fetchSkinUrl(account.accessToken);
-        if (newSkinUrl != currentSkinUrl) break; // Mojang updated!
+        if (newSkinUrl != currentSkinUrl) break; 
       } catch (_) {}
     }
 
-    // Refresh to update local state
     await refreshAccount(uuid);
   }
 
   Future<void> setCape({
     required String uuid,
-    required String? capeId, // null to unequip
+    required String? capeId, 
   }) async {
     final index = state.accounts.indexWhere((a) => a.uuid == uuid);
     if (index < 0) return;
@@ -296,26 +270,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
     }
 
-    // Optimistically update the local state immediately
     final updated = List<UserAccount>.from(state.accounts);
     updated[index] = account.copyWith(activeCapeId: capeId);
     state = state.copyWith(accounts: updated);
     await _save();
 
-    // Background refresh
     refreshAccount(uuid);
   }
 
-  // ── Offline account ───────────────────────────────────────────────────────
-
   void addOfflineAccount(String username) {
-    // Require at least one real Microsoft account before allowing offline.
+
     if (!state.hasMicrosoftAccount) return;
 
     final trimmed = username.trim();
     if (trimmed.isEmpty) return;
 
-    // Prevent duplicates
     final exists = state.accounts.any(
       (a) =>
           a.type == 'offline' &&
@@ -330,11 +299,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
       type: 'offline',
       accessToken: '',
       refreshToken: '',
-      expiresAt: DateTime(9999), // offline = never expires
+      expiresAt: DateTime(9999), 
       isActive: true,
     );
 
-    // Deactivate others
     final current =
         state.accounts.map((a) => a.copyWith(isActive: false)).toList();
     current.add(account);
@@ -343,16 +311,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
     _save();
   }
 
-  /// Generates a deterministic offline UUID exactly how Minecraft servers do it.
-  /// MD5 hash of "OfflinePlayer:username" with UUID v3 version/variant bits set.
   String _generateOfflineUuid(String username) {
     final data = utf8.encode('OfflinePlayer:$username');
     final hashBytes = md5.convert(data).bytes;
 
     final modified = List<int>.from(hashBytes);
-    // Set version to 3
+
     modified[6] = (modified[6] & 0x0f) | 0x30;
-    // Set variant to RFC4122 (10xx)
+
     modified[8] = (modified[8] & 0x3f) | 0x80;
 
     String hex(List<int> bytes) =>
@@ -360,8 +326,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     return '${hex(modified.sublist(0, 4))}-${hex(modified.sublist(4, 6))}-${hex(modified.sublist(6, 8))}-${hex(modified.sublist(8, 10))}-${hex(modified.sublist(10, 16))}';
   }
-
-  // ── Account management ────────────────────────────────────────────────────
 
   void setActive(String uuid) {
     final updated = state.accounts.map((a) {
@@ -373,7 +337,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   void removeAccount(String uuid) {
     var updated = state.accounts.where((a) => a.uuid != uuid).toList();
-    // Make first remaining active if the active was removed
+
     if (updated.isNotEmpty && !updated.any((a) => a.isActive)) {
       updated = [updated.first.copyWith(isActive: true), ...updated.skip(1)];
     }
@@ -385,8 +349,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(status: AuthStatus.idle, clearError: true);
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
-
   String _friendlyError(String raw) {
     if (raw.contains('Could not open browser')) {
       return 'Could not open browser. Please set a default browser and try again.';
@@ -394,12 +356,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
     if (raw.contains('timed out')) return 'Login timed out. Please try again.';
     if (raw.contains('xbox.com')) return raw;
     if (raw.contains('child account')) return raw;
-    // Always show raw error for debugging right now
+
     return 'Sign-in failed: $raw';
   }
 }
-
-// ── Provider ──────────────────────────────────────────────────────────────────
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   return AuthNotifier();

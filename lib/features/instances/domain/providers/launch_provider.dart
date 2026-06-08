@@ -25,23 +25,23 @@ class LaunchService {
     final acc = authState.activeAccount!;
     final isOffline = acc.type == 'offline';
 
-    // Instance overrides, fallback to global settings
     String? javaExe = instance.javaPath ?? settings.javaExecutable;
-    
-    // Auto-download Java if the user hasn't explicitly set a custom path!
+
     if (javaExe == null || javaExe.trim().isEmpty) {
       final targetVersion = instance.minecraftVersion;
       final root = await repo.getLauncherRoot();
       javaExe = await getJavaExecutablePath(minecraftDir: root, versionId: targetVersion);
-      
+
       if (javaExe == null) {
         throw Exception("Failed to resolve official Mojang Java path for version $targetVersion!");
       }
     }
-    
+
     final userJvmArgs = instance.jvmArgs ?? settings.jvmArgs ?? '';
-    
+
+    // Avoid duplicating memory args if user already specified them
     String ramArgs = '';
+
     if (!userJvmArgs.contains('-Xms')) {
       final minRam = instance.minAllocatedRamMb ?? settings.minMemoryMb;
       ramArgs += '-Xms${minRam}M ';
@@ -52,6 +52,7 @@ class LaunchService {
     }
     ramArgs = ramArgs.trim();
 
+    // Prepend calculated RAM args before user args so user can override
     final finalJvmArgs = userJvmArgs.trim().isNotEmpty 
         ? (ramArgs.isNotEmpty ? '$ramArgs $userJvmArgs' : userJvmArgs)
         : ramArgs;
@@ -63,7 +64,7 @@ class LaunchService {
         versionId: instance.profileId ?? instance.minecraftVersion,
         javaExecutable: javaExe,
         jvmArgs: finalJvmArgs,
-        ramMb: null, // We handle RAM manually via jvmArgs to support min/max correctly
+        ramMb: null, 
         isOffline: isOffline,
         accountName: acc.username,
         accountUuid: acc.uuid,
@@ -72,12 +73,13 @@ class LaunchService {
 
       DateTime? startTime;
 
+      // Track start time for play duration calculation
       stream.listen((event) {
         event.when(
           started: (pid) {
             startTime = DateTime.now();
             ref.read(runningInstancesProvider.notifier).setRunning(instance.id, pid);
-            
+
             final currentInstances = ref.read(instancesProvider).value ?? [];
             final currentInstance = currentInstances.firstWhere((e) => e.id == instance.id, orElse: () => instance);
             ref.read(instancesProvider.notifier).updateInstance(
@@ -86,7 +88,8 @@ class LaunchService {
           },
           exited: (code) {
             ref.read(runningInstancesProvider.notifier).setExited(instance.id);
-            
+
+            // Accumulate total playtime when instance closes
             if (startTime != null) {
               final duration = DateTime.now().difference(startTime!);
               final currentInstances = ref.read(instancesProvider).value ?? [];
@@ -107,7 +110,7 @@ class LaunchService {
     } catch (e) {
       ref.read(runningInstancesProvider.notifier).setExited(instance.id);
       print("Failed to start launch process: $e");
-      rethrow; // Rethrow to be caught by the UI button
+      rethrow; 
     }
   }
 }
