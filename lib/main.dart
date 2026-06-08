@@ -15,6 +15,15 @@ import 'package:path/path.dart' as p;
 
 File? _globalLogFile;
 
+void _logInfo(String message) {
+  final now = DateTime.now().toIso8601String();
+  final logMsg = '[$now] INFO: $message\n';
+  print(logMsg);
+  try {
+    _globalLogFile?.writeAsStringSync(logMsg, mode: FileMode.append);
+  } catch (_) {}
+}
+
 void _logError(String message, [Object? error, StackTrace? stack]) {
   final now = DateTime.now().toIso8601String();
   final logMsg = '[$now] ERROR: $message\n${error ?? ''}\n${stack ?? ''}\n';
@@ -28,24 +37,27 @@ Future<void> main(List<String> args) async {
   if (runWebViewTitleBarWidget(args)) {
     return;
   }
-  
+
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
-    
+
     // Initialize logger file
     try {
       final dir = await getMeridixSupportDirectory();
       final logDir = Directory(p.join(dir.path, 'logs'));
       if (!await logDir.exists()) await logDir.create(recursive: true);
       _globalLogFile = File(p.join(logDir.path, 'latest.log'));
-      
+
       // Wipe old log on fresh startup
       if (await _globalLogFile!.exists()) {
         await _globalLogFile!.delete();
       }
-      _globalLogFile!.writeAsStringSync('[${DateTime.now().toIso8601String()}] Meridix Launcher Started\n');
+      _globalLogFile!.writeAsStringSync(
+          '[${DateTime.now().toIso8601String()}] Meridix Launcher Started\n');
+      _logInfo('Logger initialized');
     } catch (_) {}
 
+    _logInfo('Installing Flutter error handlers');
     FlutterError.onError = (FlutterErrorDetails details) {
       FlutterError.presentError(details);
       _logError('Flutter framework error', details.exception, details.stack);
@@ -56,11 +68,15 @@ Future<void> main(List<String> args) async {
       return true;
     };
 
+    _logInfo('Initializing Rust bridge');
     await RustLib.init();
+    _logInfo('Rust bridge initialized');
 
     // ── Window setup ────────────────────────────────────────────────────────
+    _logInfo('Initializing acrylic/window libraries');
     await Window.initialize();
     await windowManager.ensureInitialized();
+    _logInfo('Window libraries initialized');
 
     final options = WindowOptions(
       size: const Size(1280, 800),
@@ -68,33 +84,41 @@ Future<void> main(List<String> args) async {
       center: true,
       backgroundColor: const Color(0xFF0C0E13),
       skipTaskbar: false,
-      titleBarStyle: Platform.isMacOS ? TitleBarStyle.hidden : TitleBarStyle.normal,
+      titleBarStyle:
+          Platform.isMacOS ? TitleBarStyle.hidden : TitleBarStyle.normal,
       title: 'Meridix Launcher',
     );
 
     if (Platform.isWindows) {
+      _logInfo('Applying Windows acrylic effect');
       await Window.setEffect(
         effect: WindowEffect.acrylic,
         color: const Color(0xCC0C0E13),
       );
     } else if (Platform.isMacOS) {
+      _logInfo('Applying macOS HUD window effect');
       await Window.setEffect(
         effect: WindowEffect.hudWindow,
         color: const Color(0xFF0C0E13),
       );
     } else {
+      _logInfo('Applying transparent window effect');
       await Window.setEffect(
         effect: WindowEffect.transparent,
         color: const Color(0xFF0C0E13),
       );
     }
 
+    _logInfo('Waiting until window is ready to show');
     await windowManager.waitUntilReadyToShow(options, () async {
+      _logInfo('Showing main window');
       await windowManager.setBackgroundColor(const Color(0xFF0C0E13));
       await windowManager.show();
       await windowManager.focus();
+      _logInfo('Main window shown');
     });
 
+    _logInfo('Running Flutter app');
     runApp(const ProviderScope(child: MeridixLauncherApp()));
   }, (error, stack) {
     _logError('Uncaught asynchronous error', error, stack);

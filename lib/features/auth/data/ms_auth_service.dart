@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-import 'package:desktop_webview_window/desktop_webview_window.dart';
 import '../presentation/microsoft_login_screen.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:desktop_webview_window/desktop_webview_window.dart';
 import '../domain/user_account.dart';
 
 /// Official Minecraft Launcher Client ID (v1.0 MSA)
@@ -33,7 +31,7 @@ class MsAuthService {
 
   // ── Main entry point ──────────────────────────────────────────────────────
 
-  /// Full login flow. Opens a WebView popup, waits for code, exchanges tokens,
+  /// Full login flow. Opens an embedded WebView, waits for code, exchanges tokens,
   /// authenticates with Xbox + Minecraft, and returns a [UserAccount].
   /// Start the MSA v1.0 OAuth flow and return a fully resolved Microsoft token.
   Future<UserAccount> loginWithBrowser(BuildContext context) async {
@@ -44,14 +42,15 @@ class MsAuthService {
       {
         'client_id': _clientId,
         'response_type': 'code',
-        'redirect_uri': _redirectUri, // This MUST be the official desktop.srf endpoint
+        'redirect_uri':
+            _redirectUri, // This MUST be the official desktop.srf endpoint
         'scope': _scopes,
       },
     );
 
     String code;
-    if (Platform.isWindows) {
-      // Use the new DirectX embedded canvas WebView for Windows
+    if (Platform.isWindows || Platform.isMacOS) {
+      // Use the in-app embedded WebView on desktop platforms that support it.
       final result = await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => MicrosoftLoginScreen(
@@ -67,7 +66,8 @@ class MsAuthService {
       }
       code = result as String;
     } else {
-      // Use the seamless embedded WebView popup for macOS/Linux
+      // Linux keeps the desktop WebView popup fallback until an embedded
+      // Linux WebView is available.
       code = await _getCodeFromWebView(authUrl.toString());
     }
 
@@ -209,7 +209,7 @@ class MsAuthService {
     return _extractSkinUrl(profile);
   }
 
-  // ── macOS: embedded WebView ───────────────────────────────────────────────
+  // ── Linux fallback: desktop WebView popup ────────────────────────────────
 
   Future<String> _getCodeFromWebView(String url) async {
     final completer = Completer<String>();
@@ -253,104 +253,6 @@ class MsAuthService {
     });
 
     webview.launch(url);
-
-    return completer.future;
-  }
-
-  // ── Windows / Linux: system browser + paste redirect URL ─────────────────
-
-  Future<String> _getCodeFromBrowser(String authUrl) async {
-    final completer = Completer<String>();
-    
-    // Spin up a tiny local HTTP server on a random port
-    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
-    final localPort = server.port;
-    
-    // Launch our local server in the system browser
-    if (!await launchUrl(Uri.parse('http://localhost:$localPort'))) {
-      server.close(force: true);
-      throw Exception('Could not open the system browser for authentication.');
-    }
-
-    server.listen((HttpRequest request) async {
-      if (request.method == 'POST') {
-        // The user submitted the pasted URL
-        final content = await utf8.decoder.bind(request).join();
-        final params = Uri.splitQueryString(content);
-        final pastedUrlStr = params['pasted_url'] ?? '';
-        
-        try {
-          final pastedUri = Uri.parse(pastedUrlStr.trim());
-          final code = pastedUri.queryParameters['code'];
-          final error = pastedUri.queryParameters['error'];
-
-          request.response
-            ..statusCode = 200
-            ..headers.contentType = ContentType.html
-            ..write('''
-              <html>
-                <body style="font-family: sans-serif; text-align: center; margin-top: 50px; background-color: #0C0E13; color: white;">
-                  <h2 style="color: ${code != null ? '#4CAF50' : '#F44336'};">${code != null ? 'Authentication Successful!' : 'Authentication Failed'}</h2>
-                  <p>You can close this window and return to Meridix Launcher.</p>
-                  <script>window.close();</script>
-                </body>
-              </html>
-            ''');
-          await request.response.close();
-
-          if (code != null && !completer.isCompleted) {
-            completer.complete(code);
-          } else if (error != null && !completer.isCompleted) {
-            completer.completeError(Exception(error));
-          }
-        } catch (e) {
-          request.response
-            ..statusCode = 400
-            ..write('Invalid URL format. Please try again.');
-          await request.response.close();
-        }
-        
-        server.close(force: true);
-      } else {
-        // Serve the beautiful instruction page
-        request.response
-          ..statusCode = 200
-          ..headers.contentType = ContentType.html
-          ..write('''
-            <html>
-              <head><title>Meridix Launcher Auth</title></head>
-              <body style="font-family: 'Segoe UI', sans-serif; background-color: #0C0E13; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0;">
-                <div style="background-color: #1A1D24; padding: 40px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); text-align: center; max-width: 500px;">
-                  <h1 style="margin-top: 0;">Microsoft Sign In</h1>
-                  <p style="color: #A0AABF; margin-bottom: 30px;">Sign in with your default browser, then paste the redirect URL back here.</p>
-                  
-                  <div style="text-align: left; margin-bottom: 30px;">
-                    <p><b>Step 1:</b> Click the button below to open Microsoft's login page.</p>
-                    <p><b>Step 2:</b> Log in. When the page finishes, copy the <b>full URL</b> from your address bar (it starts with <code>https://login.live.com/oauth20_desktop.srf?...</code>).</p>
-                    <p><b>Step 3:</b> Return to this tab and paste the URL below.</p>
-                  </div>
-
-                  <a href="$authUrl" target="_blank" style="display: inline-block; background-color: #0078D4; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; margin-bottom: 30px;">Open Microsoft Login</a>
-
-                  <form method="POST" action="/" style="display: flex; flex-direction: column; gap: 10px;">
-                    <input type="text" name="pasted_url" placeholder="Paste the blank page URL here (https://login.live.com/...)" style="padding: 12px; border-radius: 6px; border: 1px solid #333; background-color: #0C0E13; color: white; width: 100%; box-sizing: border-box;" required>
-                    <button type="submit" style="background-color: #4CAF50; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer;">Complete Login</button>
-                  </form>
-                </div>
-              </body>
-            </html>
-          ''');
-        await request.response.close();
-      }
-    });
-
-    // Timeout after 5 minutes
-    Future.delayed(const Duration(minutes: 5), () {
-      if (!completer.isCompleted) {
-        completer.completeError(Exception('Login timed out.'));
-        server.close(force: true);
-      }
-    });
 
     return completer.future;
   }
@@ -407,7 +309,8 @@ class MsAuthService {
       };
     } on DioException catch (e) {
       if (e.response?.statusCode == 400) {
-        throw Exception("Your Microsoft session has expired. Please sign in again.");
+        throw Exception(
+            "Your Microsoft session has expired. Please sign in again.");
       }
       rethrow;
     }
