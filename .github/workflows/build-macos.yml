@@ -53,14 +53,14 @@ jobs:
             build/macos/x64/Meridix-Launcher-arm64.dmg
 
       - name: Sign DMG
-        if: secrets.MACOS_CERTIFICATE != null
+        if: ${{ secrets.MACOS_CERTIFICATE != '' }}
         run: |
           codesign -s "${{ secrets.MACOS_CERTIFICATE_ID }}" \
             --options runtime \
             build/macos/x64/Meridix-Launcher-arm64.dmg
 
       - name: Notarize DMG
-        if: secrets.MACOS_NOTARY_USER != null
+        if: ${{ secrets.MACOS_NOTARY_USER != '' }}
         run: |
           xcrun notarytool submit build/macos/x64/Meridix-Launcher-arm64.dmg \
             --apple-id "${{ secrets.MACOS_NOTARY_USER }}" \

@@ -61,7 +61,7 @@ jobs:
           flutter build windows --release --split-debug-info build/windows/debug_info
 
       - name: Sign MSIX
-        if: secrets.WINDOWS_CERTIFICATE_PATH != null
+        if: ${{ secrets.WINDOWS_CERTIFICATE_PATH != '' }}
         run: |
           # Sign the MSIX package
           signtool sign /f "${{ secrets.WINDOWS_CERTIFICATE_PATH }}" \
