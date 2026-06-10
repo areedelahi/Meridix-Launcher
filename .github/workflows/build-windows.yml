@@ -1,95 +1,61 @@
-name: Build Windows MSIX
+with open("rust.yml", "w") as f:
+    f.write("""name: Rust CI
 
 on:
-  workflow_dispatch:
   push:
-    branches:
-      - main
-    tags:
-      - 'v*'
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  build-and-test:
+    name: Build and Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Setup Rust
+      - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: x86_64-pc-windows-msvc
+          components: rustfmt, clippy
 
-      - name: Cache Rust
+      - name: Set up Rust cache
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: rust -> target
+          workspaces: |
+            rust -> target
+            rust_builder -> target
 
-      - name: Install dependencies
-        run: flutter pub get
+      # --- Main Rust Code Steps ---
+      
+      - name: Check formatting (rust)
+        working-directory: ./rust
+        run: cargo fmt --all -- --check
 
-      - name: Build Rust library
-        run: |
-          cd rust_builder
-          flutter pub get
-          cd ..
+      - name: Run Clippy (rust)
+        working-directory: ./rust
+        run: cargo clippy --all-targets --all-features -- -D warnings
 
-      - name: Build Windows app
-        run: flutter build windows --release
+      - name: Build Main Code (rust)
+        working-directory: ./rust
+        run: cargo build --verbose
 
-      - name: Create and Sign MSIX Package
-        # Adds the Dart MSIX package and generates the Meridix-Launcher.msix file. 
-        # Providing the certificate arguments here allows the Dart package to sign it automatically.
-        run: |
-          flutter pub add --dev msix
-          dart run msix:create --output-path . --output-name Meridix-Launcher --certificate-path "${{ secrets.WINDOWS_CERTIFICATE_PATH }}" --certificate-password "${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}"
-        continue-on-error: true
+      - name: Run tests (rust)
+        working-directory: ./rust
+        run: cargo test --verbose
 
-      - name: Sign MSIX (Fallback Tool)
-        continue-on-error: true
-        # In case the Dart package's internal signing fails, this acts as a direct fallback using native signtool.
-        run: |
-          signtool sign /f "${{ secrets.WINDOWS_CERTIFICATE_PATH }}" /p "${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}" /fd SHA256 /tr http://timestamp.digicert.com Meridix-Launcher.msix
-
-      - name: Upload Windows MSIX artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: meridix-launcher-windows-msix
-          path: Meridix-Launcher.msix
-          retention-days: 30
-
-      - name: Upload Windows app artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: meridix-launcher-windows-portable
-          path: build/windows/x64/runner/Release/
-          retention-days: 30
-
-  create-release:
-    needs: build-windows
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-
-    steps:
-      - name: Download Windows artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts/
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            artifacts/**/Meridix-Launcher.msix
-            artifacts/**/Release/**
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # --- Rust Builder Steps ---
+      
+      - name: Build Rust Builder (rust_builder)
+        working-directory: ./rust_builder
+        run: cargo build --verbose
+""")
