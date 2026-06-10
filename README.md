@@ -87,7 +87,7 @@ When you first launch the app:
 - Linux (Ubuntu 20.04+, Fedora 32+, etc.) (not released or tested)
 - Java (auto-detected and setup)
 
-##Data:
+## Data:
 - Data is stored in a hidden folder:
   - macOS: `~/Library/Application Support/Meridix Launcher`
   - Windows: `%APPDATA%\Meridix Launcher`
