@@ -46,28 +46,31 @@ jobs:
 
       - name: Create DMG
         run: |
-          # Create DMG using appdmg or native tools
           mkdir -p build/macos/dmg
+          mkdir -p build/macos/Release
+
+          # Debug: show what was actually built
+          ls build/macos/Build/Products/Release/
+
           cp -r "build/macos/Build/Products/Release/Meridix Launcher.app" build/macos/dmg/
-          
-          # Create DMG with proper layout
+
           hdiutil create -volname "Meridix Launcher" \
             -srcfolder build/macos/dmg \
             -ov \
             -format UDZO \
-            build/macos/x64/Meridix-Launcher-arm64.dmg
+            build/macos/Release/Meridix-Launcher.dmg
 
       - name: Sign DMG
         continue-on-error: true
         run: |
           codesign -s "${{ secrets.MACOS_CERTIFICATE_ID }}" \
             --options runtime \
-            build/macos/x64/Meridix-Launcher-arm64.dmg
+            build/macos/Release/Meridix-Launcher.dmg
 
       - name: Notarize DMG
         continue-on-error: true
         run: |
-          xcrun notarytool submit build/macos/x64/Meridix-Launcher-arm64.dmg \
+          xcrun notarytool submit build/macos/Release/Meridix-Launcher.dmg \
             --apple-id "${{ secrets.MACOS_NOTARY_USER }}" \
             --password "${{ secrets.MACOS_NOTARY_PASSWORD }}" \
             --team-id "${{ secrets.MACOS_TEAM_ID }}" \
@@ -77,7 +80,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: meridix-launcher-macos-arm64
-          path: build/macos/x64/Meridix-Launcher-arm64.dmg
+          path: build/macos/Release/Meridix-Launcher.dmg
           retention-days: 30
 
   create-release:
@@ -94,7 +97,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: artifacts/**/Meridix-Launcher-arm64.dmg
+          files: artifacts/**/Meridix-Launcher.dmg
           draft: false
           prerelease: false
         env:
