@@ -25,10 +25,11 @@ jobs:
         run: flutter pub get
 
       - name: Download previous build artifact
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh run download --name meridix-launcher-windows-portable --dir build/windows/x64/runner/Release
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: build-windows.yml
+          name: meridix-launcher-windows-portable
+          path: build/windows/x64/runner/Release
 
       - name: Verify build files exist
         run: |
