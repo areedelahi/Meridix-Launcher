@@ -1,0 +1,44 @@
+name: Test MSIX Packaging Only
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-msix:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Download previous build artifact
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh run download --name meridix-launcher-windows-portable --dir build/windows/x64/runner/Release
+
+      - name: Verify build files exist
+        run: |
+          echo "=== Build directory contents ==="
+          Get-ChildItem -Path "build\windows\x64\runner\Release" -Recurse | Select-Object FullName, Length
+          echo "=== Looking for .exe files ==="
+          Get-ChildItem -Path "build\windows\x64\runner\Release" -Filter "*.exe" | Select-Object FullName
+
+      - name: Create MSIX Package
+        run: |
+          flutter pub add --dev msix
+          dart run msix:create
+
+      - name: Find generated MSIX
+        run: |
+          echo "=== Searching for .msix files ==="
+          Get-ChildItem -Path . -Filter "*.msix" -Recurse | Select-Object FullName, Length
