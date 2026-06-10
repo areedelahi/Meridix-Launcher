@@ -1,61 +1,90 @@
-with open("rust.yml", "w") as f:
-    f.write("""name: Rust CI
+name: Build Windows MSIX
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-env:
-  CARGO_TERM_COLOR: always
+    branches:
+      - main
+    tags:
+      - 'v*'
 
 jobs:
-  build-and-test:
-    name: Build and Test (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+  build-windows:
+    runs-on: windows-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Rust toolchain
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          components: rustfmt, clippy
+          targets: x86_64-pc-windows-msvc
 
-      - name: Set up Rust cache
+      # Caches the Rust build artifacts to significantly speed up future workflow runs
+      - name: Cache Rust
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: |
-            rust -> target
-            rust_builder -> target
+          # This tells the cache where your Rust workspace is located.
+          # If your Cargo.toml is in a different folder, adjust 'rust' to match your directory name.
+          workspaces: rust -> target
 
-      # --- Main Rust Code Steps ---
-      
-      - name: Check formatting (rust)
-        working-directory: ./rust
-        run: cargo fmt --all -- --check
+      - name: Install dependencies
+        run: flutter pub get
 
-      - name: Run Clippy (rust)
-        working-directory: ./rust
-        run: cargo clippy --all-targets --all-features -- -D warnings
+      - name: Build Rust library
+        run: |
+          cd rust_builder
+          flutter pub get
+          cd ..
 
-      - name: Build Main Code (rust)
-        working-directory: ./rust
-        run: cargo build --verbose
+      - name: Build Windows app
+        run: flutter build windows --release
 
-      - name: Run tests (rust)
-        working-directory: ./rust
-        run: cargo test --verbose
+      - name: Create and Sign MSIX Package
+        run: |
+          flutter pub add --dev msix
+          dart run msix:create --output-path . --output-name Meridix-Launcher --build-windows-path "build\windows\x64\runner\Release" --executable-name "meridix_launcher.exe" --certificate-path "${{ secrets.WINDOWS_CERTIFICATE_PATH }}" --certificate-password "${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}"
+        continue-on-error: true
 
-      # --- Rust Builder Steps ---
-      
-      - name: Build Rust Builder (rust_builder)
-        working-directory: ./rust_builder
-        run: cargo build --verbose
-""")
+      - name: Upload Windows MSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: meridix-launcher-windows-msix
+          path: Meridix-Launcher.msix
+          retention-days: 30
+
+      - name: Upload Windows app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: meridix-launcher-windows-portable
+          path: build/windows/x64/runner/Release/
+          retention-days: 30
+
+  create-release:
+    needs: build-windows
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/**/Meridix-Launcher.msix
+            artifacts/**/Release/**
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
