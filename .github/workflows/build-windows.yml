@@ -54,9 +54,14 @@ jobs:
           cp -r build/windows/x64/runner/Release build/windows/runner/Release
 
       - name: Create and Sign MSIX Package
+        shell: bash
         run: |
           flutter pub add --dev msix
-          dart run msix:create --certificate-path "${{ secrets.WINDOWS_CERTIFICATE_PATH }}" --certificate-password "${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}"
+          if [ -n "${{ secrets.WINDOWS_CERTIFICATE_PATH }}" ]; then
+            dart run msix:create --certificate-path "${{ secrets.WINDOWS_CERTIFICATE_PATH }}" --certificate-password "${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}"
+          else
+            dart run msix:create
+          fi
         continue-on-error: true
 
       - name: Upload Windows MSIX artifact
