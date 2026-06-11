@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-import '../presentation/microsoft_login_screen.dart';
 import 'package:desktop_webview_window/desktop_webview_window.dart';
 import '../domain/user_account.dart';
 
@@ -41,27 +40,7 @@ class MsAuthService {
       },
     );
 
-    String code;
-    if (Platform.isWindows || Platform.isMacOS) {
-
-      final result = await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => MicrosoftLoginScreen(
-            authUrl: authUrl.toString(),
-            redirectUri: _redirectUri,
-          ),
-        ),
-      );
-      if (result == null) {
-        throw Exception('Login cancelled by user.');
-      } else if (result is Exception) {
-        throw result;
-      }
-      code = result as String;
-    } else {
-
-      code = await _getCodeFromWebView(authUrl.toString());
-    }
+    String code = await _getCodeFromWebView(authUrl.toString());
 
     final msTokens = await _exchangeCodeForMsToken(
       code: code,

@@ -1,5 +1,5 @@
 [package]
-name = "rust_lib_liquid_launcher"
+name = "rust_lib_ausrine_launcher"
 version = "0.1.0"
 edition = "2021"
 
