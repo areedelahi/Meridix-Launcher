@@ -35,7 +35,7 @@ jobs:
         uses: dawidd6/action-download-artifact@v6
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          workflow: build-macros.yml
+          workflow: build-macos.yml
           name: meridix-launcher-macos-arm64
           path: release-assets/macos
 
