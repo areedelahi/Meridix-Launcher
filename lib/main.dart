@@ -52,7 +52,7 @@ Future<void> main(List<String> args) async {
         await _globalLogFile!.delete();
       }
       _globalLogFile!.writeAsStringSync(
-          '[${DateTime.now().toIso8601String()}] Ausrinė Launcher Started\n');
+          '[${DateTime.now().toIso8601String()}] Ausrine Launcher Started\n');
       _logInfo('Logger initialized');
     } catch (_) {}
 
@@ -85,7 +85,7 @@ Future<void> main(List<String> args) async {
       skipTaskbar: false,
       titleBarStyle:
           Platform.isMacOS ? TitleBarStyle.hidden : TitleBarStyle.normal,
-      title: 'Ausrinė Launcher',
+      title: 'Ausrine Launcher',
     );
 
     if (Platform.isWindows) {
@@ -131,7 +131,7 @@ class AusrineLauncherApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Ausrinė Launcher',
+      title: 'Ausrine Launcher',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.build(),
       routerConfig: appRouter,

@@ -117,28 +117,28 @@ Future<Directory> getAusrineSupportDirectory() async {
   if (Platform.isMacOS) {
     final home = Platform.environment['HOME'];
     if (home != null) {
-      final dir = Directory(p.join(home, 'Library', 'Application Support', 'Ausrinė Launcher'));
+      final dir = Directory(p.join(home, 'Library', 'Application Support', 'Ausrine Launcher'));
       if (!dir.existsSync()) await dir.create(recursive: true);
       return dir;
     }
   } else if (Platform.isWindows) {
     final appData = Platform.environment['APPDATA'];
     if (appData != null) {
-      final dir = Directory(p.join(appData, 'Ausrinė Launcher'));
+      final dir = Directory(p.join(appData, 'Ausrine Launcher'));
       if (!dir.existsSync()) await dir.create(recursive: true);
       return dir;
     }
   } else if (Platform.isLinux) {
     final home = Platform.environment['HOME'];
     if (home != null) {
-      final dir = Directory(p.join(home, '.config', 'Ausrinė Launcher'));
+      final dir = Directory(p.join(home, '.config', 'Ausrine Launcher'));
       if (!dir.existsSync()) await dir.create(recursive: true);
       return dir;
     }
   }
 
   final base = await getApplicationSupportDirectory();
-  final dir = Directory(p.join(base.path, 'Ausrinė Launcher'));
+  final dir = Directory(p.join(base.path, 'Ausrine Launcher'));
   if (!dir.existsSync()) await dir.create(recursive: true);
   return dir;
 }

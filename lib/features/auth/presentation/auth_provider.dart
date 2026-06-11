@@ -17,7 +17,7 @@ const _kAccountsKey = 'ausrine_launcher_accounts';
 
 // Fixed encryption key - secure storage only used on non-macOS platforms
 final _encKey = enc.Key(Uint8List.fromList(
-  'Ausrinė LauncherV1SecretKey!XMCLS1'.codeUnits,
+  'Ausrine LauncherV1SecretKey!XMCLS1'.codeUnits,
 ));
 final _encrypter = enc.Encrypter(enc.AES(_encKey, mode: enc.AESMode.cbc));
 

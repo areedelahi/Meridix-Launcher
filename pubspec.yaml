@@ -1,5 +1,5 @@
 name: ausrine_launcher
-description: "Ausrinė Launcher — Cross-platform Minecraft launcher for Windows, macOS & Linux."
+description: "Ausrine Launcher — Cross-platform Minecraft launcher for Windows, macOS & Linux."
 version: 1.0.0+1
 publish_to: none
 
@@ -80,7 +80,7 @@ flutter:
     - assets/images/
 
 msix_config:
-  display_name: Ausrinė Launcher
+  display_name: Ausrine Launcher
   publisher_display_name: areedelahi
   identity_name: com.areedelahi.AusrineLauncher
   msix_version: 1.0.0.0
