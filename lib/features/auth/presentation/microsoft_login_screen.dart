@@ -20,12 +20,21 @@ class _MicrosoftLoginScreenState extends State<MicrosoftLoginScreen> {
   final GlobalKey webViewKey = GlobalKey();
   InAppWebViewController? webViewController;
   bool _isCompleting = false;
+  bool _cookiesCleared = false;
 
   @override
   void initState() {
     super.initState();
-    // Clear cookies immediately on init to force a fresh login session
-    _clearCookies();
+    _setupAndClearCookies();
+  }
+
+  Future<void> _setupAndClearCookies() async {
+    await _clearCookies();
+    if (mounted) {
+      setState(() {
+        _cookiesCleared = true;
+      });
+    }
   }
 
   Future<void> _clearCookies() async {
@@ -72,9 +81,10 @@ class _MicrosoftLoginScreenState extends State<MicrosoftLoginScreen> {
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       backgroundColor: const Color(0xFF0C0E13),
-      body: InAppWebView(
-        key: webViewKey,
-        initialUrlRequest: URLRequest(url: WebUri(widget.authUrl)),
+      body: _cookiesCleared 
+        ? InAppWebView(
+            key: webViewKey,
+            initialUrlRequest: URLRequest(url: WebUri(widget.authUrl)),
         initialSettings: InAppWebViewSettings(
           clearCache: true,
           clearSessionCache: true,
@@ -94,7 +104,10 @@ class _MicrosoftLoginScreenState extends State<MicrosoftLoginScreen> {
           }
           return NavigationActionPolicy.ALLOW;
         },
-      ),
+      )
+      : const Center(
+          child: CircularProgressIndicator(color: Color(0xFF4CAF50)),
+        ),
     );
   }
 }
