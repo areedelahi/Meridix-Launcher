@@ -33,6 +33,7 @@ fn get_jvm_platform_string() -> String {
         ("windows", "aarch64") => "windows-arm64".to_string(),
         ("windows", _) => "windows-x64".to_string(),
         ("linux", "x86") => "linux-i386".to_string(),
+        ("linux", "aarch64") => "linux-arm64".to_string(),
         ("linux", _) => "linux".to_string(),
         ("macos", "aarch64") => "mac-os-arm64".to_string(),
         ("macos", _) => "mac-os".to_string(),
@@ -218,6 +219,10 @@ pub fn get_executable_path(
 
     for path in &standard_paths {
         if path.is_file() {
+            #[cfg(unix)]
+            {
+                let _ = std::process::Command::new("chmod").arg("+x").arg(path).status();
+            }
             return Some(path.clone());
         }
     }
@@ -229,12 +234,37 @@ pub fn get_executable_path(
                 let check_paths = [
                     entry.path().join("bin").join("java"),
                     entry.path().join("bin").join("java.exe"),
-                    entry.path().join("zulu-8.jre").join("Contents").join("Home").join("bin").join("java"),
                     entry.path().join("Contents").join("Home").join("bin").join("java"),
                 ];
                 for path in &check_paths {
                     if path.is_file() {
+                        #[cfg(unix)]
+                        {
+                            let _ = std::process::Command::new("chmod").arg("+x").arg(path).status();
+                        }
                         return Some(path.clone());
+                    }
+                }
+                
+                // Search 1 level deeper for .jre or .jdk folders
+                if let Ok(sub_entries) = std::fs::read_dir(entry.path()) {
+                    for sub in sub_entries.flatten() {
+                        if sub.path().is_dir() {
+                            let deep_paths = [
+                                sub.path().join("Contents").join("Home").join("bin").join("java"),
+                                sub.path().join("bin").join("java"),
+                                sub.path().join("bin").join("java.exe"),
+                            ];
+                            for dp in &deep_paths {
+                                if dp.is_file() {
+                                    #[cfg(unix)]
+                                    {
+                                        let _ = std::process::Command::new("chmod").arg("+x").arg(dp).status();
+                                    }
+                                    return Some(dp.clone());
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -340,6 +370,11 @@ fn install_zulu_jvm_runtime(
     minecraft_directory: impl AsRef<Path>,
     reporter: &mut dyn crate::progress::ProgressReporter,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    // If we already have a valid Java executable, don't redownload it
+    if crate::runtime::get_executable_path(jvm_version, &minecraft_directory).is_some() {
+        return Ok(());
+    }
+
     use reqwest::blocking::Client;
     use serde_json::Value;
     
@@ -356,7 +391,8 @@ fn install_zulu_jvm_runtime(
         _ => return Err("Unsupported architecture for Zulu fallback".into()),
     };
     
-    let url = format!("https://api.azul.com/metadata/v1/zulu/packages?java_version={}&os={}&arch={}&archive_type=zip&java_package_type=jre&latest=true&release_status=ga", java_major_version, zulu_os, zulu_arch);
+    let archive_type = if env::consts::OS == "linux" { "tar.gz" } else { "zip" };
+    let url = format!("https://api.azul.com/metadata/v1/zulu/packages?java_version={}&os={}&arch={}&archive_type={}&java_package_type=jre&latest=true&release_status=ga", java_major_version, zulu_os, zulu_arch, archive_type);
     
     let client = Client::new();
     let resp: Vec<Value> = client.get(&url).send()?.json()?;
@@ -390,7 +426,15 @@ fn install_zulu_jvm_runtime(
     
     crate::net::download::execute_plan(&plan, reporter)?;
     
-    crate::io::archive::extract_zip_safely(&temp_zip, &base_path)?;
+    if temp_zip.to_string_lossy().ends_with(".tar.gz") || temp_zip.to_string_lossy().ends_with(".tar") {
+        let _ = std::process::Command::new("tar")
+            .arg("-xzf")
+            .arg(&temp_zip)
+            .current_dir(&base_path)
+            .status();
+    } else {
+        crate::io::archive::extract_zip_safely(&temp_zip, &base_path)?;
+    }
     let _ = std::fs::remove_file(&temp_zip);
     
     #[cfg(unix)]

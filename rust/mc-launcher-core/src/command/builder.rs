@@ -122,6 +122,16 @@ pub fn build_launch_command_for_platform(
             .join(version_id)
             .join("natives")
     });
+
+    // Ensure natives are extracted before launch (especially important for Forge/Fabric 
+    // and dynamically patched libraries which may not have been extracted during install).
+    let _ = crate::install::natives::extract_natives_for_platform(
+        &version.libraries,
+        &minecraft_dir,
+        version_id,
+        platform,
+    );
+
     let entries = classpath_entries_for_platform(version, &minecraft_dir, platform)?;
     let classpath = classpath_string(&entries);
     let assets_index = version.assets.as_deref().unwrap_or(version_id);
@@ -158,8 +168,13 @@ pub fn build_launch_command_for_platform(
         ));
     }
     
-    if platform.os == Os::MacOs && !args.contains(&"-XstartOnFirstThread".to_string()) {
-        args.insert(0, "-XstartOnFirstThread".to_string());
+    if platform.os == Os::MacOs {
+        if !args.contains(&"-Dapple.awt.UIElement=false".to_string()) {
+            args.insert(0, "-Dapple.awt.UIElement=false".to_string());
+        }
+        if !args.iter().any(|arg| arg.starts_with("-Xdock:name=")) {
+            args.insert(0, "-Xdock:name=Minecraft".to_string());
+        }
     }
     
     args.push(main_class);
@@ -219,9 +234,6 @@ fn default_legacy_jvm_arguments(
     platform: Platform,
 ) -> Vec<String> {
     let mut args = Vec::new();
-    if platform.os == Os::MacOs {
-        args.push("-XstartOnFirstThread".to_string());
-    }
     args.push(format!("-Djava.library.path={}", natives_dir.display()));
     args.push("-cp".to_string());
     args.push(classpath.to_string());
