@@ -177,6 +177,12 @@ pub fn build_launch_command_for_platform(
         }
     }
     
+    if platform.os == Os::Linux && platform.arch == Arch::Aarch64 {
+        if !args.contains(&"-Dorg.lwjgl.system.jemalloc.libname=".to_string()) {
+            args.insert(0, "-Dorg.lwjgl.system.jemalloc.libname=".to_string());
+        }
+    }
+    
     args.push(main_class);
 
     if version.minecraft_arguments.is_some() {

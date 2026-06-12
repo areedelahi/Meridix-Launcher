@@ -81,7 +81,7 @@ flutter:
 msix_config:
   display_name: Ausrine Launcher
   publisher_display_name: areedelahi
-  identity_name: com.areedelahi.AusrineLauncher
+  identity_name: com.areedelahi.ausrine
   msix_version: 1.0.0.0
   publisher: CN=areedelahi
   logo_path: assets/images/app_icon.png

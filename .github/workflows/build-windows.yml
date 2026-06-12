@@ -55,11 +55,14 @@ jobs:
           retention-days: 30
           if-no-files-found: error
 
+      - name: Zip Windows Portable
+        run: Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath ausrine-launcher-windows-portable.zip
+
       - name: Upload Windows portable artifact
         uses: actions/upload-artifact@v4
         with:
           name: ausrine-launcher-windows-portable
-          path: build/windows/x64/runner/Release/
+          path: ausrine-launcher-windows-portable.zip
           retention-days: 30
 
   create-release:

@@ -39,6 +39,32 @@ jobs:
           name: ausrine-launcher-macos-arm64
           path: release-assets/macos
 
+      - name: Download Windows Portable
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: build-windows.yml
+          name: ausrine-launcher-windows-portable
+          path: release-assets/windows
+
+      - name: Download Linux x64 Flatpak
+        uses: dawidd6/action-download-artifact@v6
+        continue-on-error: true
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: build-linux-flatpak.yml
+          name: ausrine-launcher-linux-x64-flatpak
+          path: release-assets/linux
+
+      - name: Download Linux arm64 Flatpak
+        uses: dawidd6/action-download-artifact@v6
+        continue-on-error: true
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: build-linux-flatpak.yml
+          name: ausrine-launcher-linux-arm64-flatpak
+          path: release-assets/linux
+
       - name: List downloaded assets
         run: |
           echo "=== Windows ==="
@@ -53,7 +79,9 @@ jobs:
           name: ${{ inputs.release_name }}
           files: |
             release-assets/windows/**/*.msix
+            release-assets/windows/**/*.zip
             release-assets/macos/*
+            release-assets/linux/*.flatpak
           draft: false
           prerelease: false
           generate_release_notes: true
