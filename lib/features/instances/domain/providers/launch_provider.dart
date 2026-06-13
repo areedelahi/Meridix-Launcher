@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../src/rust/api/launcher.dart';
 import '../../../../src/rust/api/installer.dart';
+import '../../../../src/rust/api/discord.dart';
 import '../../../auth/presentation/auth_provider.dart';
 import '../../../settings/domain/providers/settings_provider.dart';
 import '../../data/instance_repository.dart';
@@ -92,6 +93,15 @@ class LaunchService {
             ref.read(instancesProvider.notifier).updateInstance(
               currentInstance.copyWith(lastPlayed: startTime)
             );
+
+            try {
+              final unixSeconds = startTime!.millisecondsSinceEpoch ~/ 1000;
+              final state = instance.profileId != null ? 'Modded ${instance.profileId}' : 'Vanilla ${instance.minecraftVersion}';
+              final details = 'Playing ${instance.name}';
+              setDiscordPresence(state: state, details: details, startTimestamp: unixSeconds);
+            } catch (e) {
+              print('Failed to set discord presence: $e');
+            }
           },
           exited: (code) {
             print("Received exited event from Rust! Code: $code");
@@ -107,6 +117,11 @@ class LaunchService {
                   playTimeMs: currentInstance.playTimeMs + duration.inMilliseconds,
                 )
               );
+            }
+            try {
+              clearDiscordPresence();
+            } catch (e) {
+              print('Failed to clear discord presence: $e');
             }
           },
         );

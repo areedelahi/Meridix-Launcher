@@ -6,6 +6,7 @@ import 'package:window_manager/window_manager.dart';
 import 'core/theme/app_theme.dart';
 import 'shell/app_router.dart';
 import 'src/rust/frb_generated.dart';
+import 'src/rust/api/discord.dart';
 
 import 'dart:async';
 import 'dart:ui';
@@ -66,6 +67,15 @@ Future<void> main(List<String> args) async {
     _logInfo('Initializing Rust bridge');
     await RustLib.init();
     _logInfo('Rust bridge initialized');
+    
+    _logInfo('Initializing Discord RPC');
+    try {
+      await initDiscordRpc(clientId: "1515240427786076250");
+      await setDiscordPresence(state: "Idle", details: "In Launcher", startTimestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000);
+      _logInfo('Discord RPC set to Idle');
+    } catch (e) {
+      _logInfo('Failed to init discord: $e');
+    }
 
     _logInfo('Initializing acrylic/window libraries');
     await Window.initialize();
