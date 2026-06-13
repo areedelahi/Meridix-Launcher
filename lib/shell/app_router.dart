@@ -9,9 +9,14 @@ import '../features/console/presentation/console_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import 'shell_screen.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 // ShellRoute creates persistent navigation panel while routes change inner content
-final appRouter = GoRouter(
-  initialLocation: '/',
+late final GoRouter appRouter;
+
+void initAppRouter(String initialLocation) {
+  appRouter = GoRouter(
+    initialLocation: initialLocation,
   routes: [
     ShellRoute(
       builder: (context, state, child) => ShellScreen(child: child),
@@ -69,6 +74,15 @@ final appRouter = GoRouter(
     ),
   ],
 );
+
+  appRouter.routerDelegate.addListener(() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final currentLoc = appRouter.routerDelegate.currentConfiguration.uri.path;
+      await prefs.setString('last_route', currentLoc);
+    } catch (_) {}
+  });
+}
 
 CustomTransitionPage<void> _slideUpPage({
   required LocalKey key,

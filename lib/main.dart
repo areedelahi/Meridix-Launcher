@@ -89,6 +89,9 @@ Future<void> main(List<String> args) async {
     final y = prefs.getDouble('window_y');
     final isMaximized = prefs.getBool('window_maximized') ?? false;
 
+    final lastRoute = prefs.getString('last_route') ?? '/';
+    initAppRouter(lastRoute);
+
     // macOS hides native title bar for custom window chrome
     final options = WindowOptions(
       size: Size(width, height),
